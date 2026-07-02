@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/NVLearnHub.API/NVLearnHub.API.csproj" />
+    <Project Path="src/NVLearnHub.Application/NVLearnHub.Application.csproj" />
+    <Project Path="src/NVLearnHub.Domain/NVLearnHub.Domain.csproj" />
+    <Project Path="src/NVLearnHub.Infrastructure/NVLearnHub.Infrastructure.csproj" />
+  </Folder>
+</Solution>

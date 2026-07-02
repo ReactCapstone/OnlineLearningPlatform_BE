@@ -55,3 +55,23 @@ CodeCoverage/
 *.VisualState.xml
 TestResult.xml
 nunit-*.xml
+
+# Visual Studio
+.vs/
+.vscode/
+.idea/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+
+# Visual Studio workspace
+*.sqlite
+*.db
+DocumentLayout.json
+*.cache
+*.tmp
+*.log
+
+VSWorkspaceState.json
