@@ -28,30 +28,35 @@ namespace NVLearnHub.Infrastructure.Data
         public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
         // Catalog
-        public DbSet<Category> Categories => Set<Category>();
-        public DbSet<Course> Courses => Set<Course>();
-        public DbSet<Section> Sections => Set<Section>();
-        public DbSet<Lesson> Lessons => Set<Lesson>();
+        //public DbSet<Category> Categories => Set<Category>();
+        //public DbSet<Course> Courses => Set<Course>();
+        //public DbSet<Section> Sections => Set<Section>();
+        //public DbSet<Lesson> Lessons => Set<Lesson>();
 
         // Enrollment
-        public DbSet<Enrollment> Enrollments => Set<Enrollment>();
-        public DbSet<LessonProgress> LessonProgress => Set<LessonProgress>();
-        public DbSet<Wishlist> Wishlists => Set<Wishlist>();
-        public DbSet<Review> Reviews => Set<Review>();
-        public DbSet<Certificate> Certificates => Set<Certificate>();
+        //public DbSet<Enrollment> Enrollments => Set<Enrollment>();
+        //public DbSet<LessonProgress> LessonProgress => Set<LessonProgress>();
+        //public DbSet<Wishlist> Wishlists => Set<Wishlist>();
+        //public DbSet<Review> Reviews => Set<Review>();
+        //public DbSet<Certificate> Certificates => Set<Certificate>();
 
         // Assessment
-        public DbSet<Assessment> Assessments => Set<Assessment>();
-        public DbSet<Question> Questions => Set<Question>();
-        public DbSet<QuestionOption> QuestionOptions => Set<QuestionOption>();
-        public DbSet<AssessmentAttempt> AssessmentAttempts => Set<AssessmentAttempt>();
-        public DbSet<AssessmentAnswer> AssessmentAnswers => Set<AssessmentAnswer>();
+        //public DbSet<Assessment> Assessments => Set<Assessment>();
+        //public DbSet<Question> Questions => Set<Question>();
+        //public DbSet<QuestionOption> QuestionOptions => Set<QuestionOption>();
+        //public DbSet<AssessmentAttempt> AssessmentAttempts => Set<AssessmentAttempt>();
+        //public DbSet<AssessmentAnswer> AssessmentAnswers => Set<AssessmentAnswer>();
 
         // Admin
-        public DbSet<Advertisement> Advertisements => Set<Advertisement>();
+        //public DbSet<Advertisement> Advertisements => Set<Advertisement>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Role>().HasData(
+                new Role { Id = 1, Name = "Admin", CreatedAt = DateTime.UtcNow, CreatedBy = "system" },
+                new Role { Id = 2, Name = "Student", CreatedAt = DateTime.UtcNow, CreatedBy = "system" }
+            );
+
             // Apply all IEntityTypeConfiguration classes in Infrastructure automatically
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(LearnHubDbContext).Assembly);
 
