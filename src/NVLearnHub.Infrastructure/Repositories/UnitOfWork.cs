@@ -18,15 +18,12 @@ namespace NVLearnHub.Infrastructure.Repositories
 
         public IPasswordResetTokenRepository PasswordResetTokens {  get; }
 
-        public UnitOfWork(LearnHubDbContext context, 
-            IUserRepository users,
-            IRoleRepository roles,
-            IPasswordResetTokenRepository passwordResetTokens)
+        public UnitOfWork(LearnHubDbContext context)
         {
             this._context = context;
-            Users = users;
-            Roles = roles;
-            PasswordResetTokens = passwordResetTokens;
+            Users = new UserRepository(_context);
+            Roles = new RoleRepository(_context);
+            PasswordResetTokens = new PasswordResetTokenRepository(_context);
         }
 
 

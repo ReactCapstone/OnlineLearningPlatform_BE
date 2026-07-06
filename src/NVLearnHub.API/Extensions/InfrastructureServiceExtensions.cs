@@ -18,12 +18,6 @@ public static class InfrastructureServiceExtensions
         services.AddDbContext<LearnHubDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
 
-        // Repositories
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped<IUserRepository, UserRepository>();
-        services.AddScoped<IRoleRepository, RoleRepository>();
-        services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
-
         // Unit of Work
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
