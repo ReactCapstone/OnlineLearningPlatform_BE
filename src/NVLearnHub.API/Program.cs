@@ -3,6 +3,7 @@ using Microsoft.IdentityModel.Tokens;
 using NVLearnHub.API.Extensions;
 using NVLearnHub.API.Middleware;
 using NVLearnHub.Application.Extensions;
+using NVLearnHub.Domain.Constants;
 using NVLearnHub.Infrastructure.Extensions;
 using System.Text;
 
@@ -43,6 +44,7 @@ app.UseMiddleware<ExceptionMiddleware>();   // ← global error handler, must be
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseHttpsRedirection();
+app.UseCors(Consts.CORS_POLICY_NAME);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

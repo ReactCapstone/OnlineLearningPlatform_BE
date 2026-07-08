@@ -53,8 +53,8 @@ namespace NVLearnHub.Infrastructure.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Role>().HasData(
-                new Role { Id = 1, Name = "Admin", CreatedAt = DateTime.UtcNow, CreatedBy = "system" },
-                new Role { Id = 2, Name = "Student", CreatedAt = DateTime.UtcNow, CreatedBy = "system" }
+                new Role { Id = 1, Name = "Admin", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), CreatedBy = "system" },
+                new Role { Id = 2, Name = "Student", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), CreatedBy = "system" }
             );
 
             // Apply all IEntityTypeConfiguration classes in Infrastructure automatically

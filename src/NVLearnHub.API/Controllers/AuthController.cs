@@ -19,35 +19,37 @@ namespace NVLearnHub.API.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register([FromBody] RegisterDto dto)
         {
-            var result = await _authService.RegisterAsync(dto);
-            return Ok(new ApiResponse<AuthResponseDto>(result, "Registration successful."));
+            var response = await _authService.RegisterAsync(dto);
+            if (!response.Success)
+                return BadRequest(response);
+            return Ok(response);
         }
 
         [HttpPost("login")]
         public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login([FromBody] LoginDto dto)
         {
-            var result = await _authService.LoginAsync(dto);
-            return Ok(new ApiResponse<AuthResponseDto>(result, "Login successful."));
+            var response = await _authService.LoginAsync(dto);
+            if (!response.Success)
+                return Unauthorized(response);
+            return Ok(response);
         }
 
         [HttpPost("forgot-password")]
         public async Task<ActionResult<ApiResponse<ForgotPasswordResponseDto>>> ForgotPassword([FromBody] ForgotPasswordDto dto)
         {
-            var token = await _authService.ForgotPasswordAsync(dto);
-            return Ok(new ApiResponse<ForgotPasswordResponseDto>(
-                new ForgotPasswordResponseDto { Token = token },
-                "Reset token generated."
-            ));
+            var response = await _authService.ForgotPasswordAsync(dto);
+            if (!response.Success)
+                return NotFound(response);
+            return Ok(response);
         }
 
         [HttpPost("reset-password")]
         public async Task<ActionResult<ApiResponse<ResetPasswordResponseDto>>> ResetPassword([FromBody] ResetPasswordDto dto)
         {
-            await _authService.ResetPasswordAsync(dto);
-            return Ok(new ApiResponse<ResetPasswordResponseDto>(
-                new ResetPasswordResponseDto { IsReset = true },
-                "Password reset successful."
-            ));
+            var response = await _authService.ResetPasswordAsync(dto);
+            if (!response.Success)
+                return BadRequest(response);
+            return Ok(response);
         }
     }
 }

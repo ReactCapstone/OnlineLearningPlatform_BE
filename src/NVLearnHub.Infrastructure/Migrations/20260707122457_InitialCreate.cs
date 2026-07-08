@@ -114,8 +114,8 @@ namespace NVLearnHub.Infrastructure.Migrations
                 columns: new[] { "Id", "CreatedAt", "CreatedBy", "Name", "UpdatedAt", "UpdatedBy" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 7, 5, 14, 35, 48, 214, DateTimeKind.Utc).AddTicks(637), "system", "Admin", null, null },
-                    { 2, new DateTime(2026, 7, 5, 14, 35, 48, 214, DateTimeKind.Utc).AddTicks(1124), "system", "Student", null, null }
+                    { 1, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "system", "Admin", null, null },
+                    { 2, new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "system", "Student", null, null }
                 });
 
             migrationBuilder.CreateIndex(

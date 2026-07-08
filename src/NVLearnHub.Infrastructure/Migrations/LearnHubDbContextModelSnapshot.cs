@@ -140,14 +140,14 @@ namespace NVLearnHub.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 7, 5, 14, 35, 48, 214, DateTimeKind.Utc).AddTicks(637),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "system",
                             Name = "Admin"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 7, 5, 14, 35, 48, 214, DateTimeKind.Utc).AddTicks(1124),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "system",
                             Name = "Student"
                         });

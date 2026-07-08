@@ -1,11 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using NVLearnHub.Domain.Constants;
 
 namespace NVLearnHub.API.Extensions
 {
     public static class CorsServiceExtensions
     {
-        public static readonly string PolicyName = "NVLearnHubCorsPolicy";
+        public static readonly string PolicyName = Consts.CORS_POLICY_NAME;
 
         public static IServiceCollection AddCorsPolicy(this IServiceCollection services,
                                                         IConfiguration configuration)
