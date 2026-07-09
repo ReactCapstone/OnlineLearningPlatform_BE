@@ -41,11 +41,14 @@ namespace NVLearnHub.Application.Services
 
             var user = new User
             {
-                FullName = dto.FullName,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
                 Email = dto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 RoleId = studentRole.Id,
-                IsActive = true
+                IsActive = true,
+                YearsOfExperience = dto.YearsOfExperience,
+                AreaOfExpertise = dto.AreaOfExpertise
             };
 
             await _uow.Users.AddAsync(user);
@@ -136,15 +139,17 @@ namespace NVLearnHub.Application.Services
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expiry = DateTime.UtcNow.AddMinutes(expiryMinutes);
+            var expiry = DateTime.UtcNow.AddMinutes(expiryMinutes); // 4320 = 3days
 
             var claims = new[]
             {
-                new Claim(JwtClaims.Sub, user.Id.ToString()),
+                new Claim(JwtClaims.Sub,   user.Id.ToString()),
                 new Claim(JwtClaims.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.Email),
                 new Claim(ClaimTypes.Role, roleName),
-                new Claim("fullName", user.FullName)
+                new Claim("fullName",      user.FullName),
+                new Claim("firstName",     user.FirstName),
+                new Claim("lastName",      user.LastName)
             };
 
             var token = new JwtSecurityToken(
@@ -157,9 +162,13 @@ namespace NVLearnHub.Application.Services
             return new AuthResponseDto
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Email = user.Email,
                 FullName = user.FullName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
                 Role = roleName,
+                YearsOfExperience = user.YearsOfExperience,
+                AreaOfExpertise = user.AreaOfExpertise,
                 ExpiresAt = expiry
             };
         }
