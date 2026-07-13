@@ -6,6 +6,7 @@ using NVLearnHub.Application.Interfaces.Repositories;
 using NVLearnHub.Infrastructure.Data;
 using NVLearnHub.Infrastructure.Repositories;
 using NVLearnHub.Infrastructure.Services;
+using NVLearnHub.Application.Interfaces.Services;
 
 namespace NVLearnHub.Infrastructure.Extensions;
 
@@ -24,6 +25,9 @@ public static class InfrastructureServiceExtensions
         // Current User
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // Wishlist (in-memory for now)
+        services.AddScoped<IWishlistService, WishlistService>();
 
         return services;
     }
