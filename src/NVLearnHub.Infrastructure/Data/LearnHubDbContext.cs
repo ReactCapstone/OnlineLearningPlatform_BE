@@ -28,10 +28,10 @@ namespace NVLearnHub.Infrastructure.Data
         public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
         // Catalog
-        //public DbSet<Category> Categories => Set<Category>();
-        //public DbSet<Course> Courses => Set<Course>();
-        //public DbSet<Section> Sections => Set<Section>();
-        //public DbSet<Lesson> Lessons => Set<Lesson>();
+        public DbSet<Category> Categories => Set<Category>();
+        public DbSet<Course> Courses => Set<Course>();
+        public DbSet<Section> Sections => Set<Section>();
+        public DbSet<Lesson> Lessons => Set<Lesson>();
 
         // Enrollment
         //public DbSet<Enrollment> Enrollments => Set<Enrollment>();
