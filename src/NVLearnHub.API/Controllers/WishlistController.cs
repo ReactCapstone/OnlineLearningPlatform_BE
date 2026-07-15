@@ -25,8 +25,8 @@ namespace NVLearnHub.API.Controllers
             return Ok(response);
         }
 
-        [HttpPost("{courseId:guid}")]
-        public async Task<ActionResult<ApiResponse<WishlistCourseDto>>> Add(System.Guid courseId)
+        [HttpPost("{courseId:int}")]
+        public async Task<ActionResult<ApiResponse<WishlistCourseDto>>> Add(int courseId)
         {
             var response = await _wishlistService.AddToWishlistAsync(courseId);
             if (!response.Success)
@@ -34,8 +34,8 @@ namespace NVLearnHub.API.Controllers
             return Ok(response);
         }
 
-        [HttpDelete("{courseId:guid}")]
-        public async Task<ActionResult<ApiResponse<bool>>> Remove(System.Guid courseId)
+        [HttpDelete("{courseId:int}")]
+        public async Task<ActionResult<ApiResponse<bool>>> Remove(int courseId)
         {
             var response = await _wishlistService.RemoveFromWishlistAsync(courseId);
             if (!response.Success)

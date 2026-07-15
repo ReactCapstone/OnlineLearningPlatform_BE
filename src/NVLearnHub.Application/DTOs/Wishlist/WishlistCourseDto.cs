@@ -2,11 +2,12 @@ namespace NVLearnHub.Application.DTOs.Wishlist;
 
 public class WishlistCourseDto
 {
-    public System.Guid Id { get; set; }
+    public int Id { get; set; }
+    public string Icon { get; set; } = default!;
+    public string IconBg { get; set; } = default!;
+    public string Category { get; set; } = default!;
     public string Title { get; set; } = default!;
     public string? Description { get; set; }
-    public string? Category { get; set; }
-    public string? ImageUrl { get; set; }
-    public string? Instructor { get; set; }
-    public decimal? Price { get; set; }
+    public string? Duration { get; set; }
+    public int? Lessons { get; set; }
 }
