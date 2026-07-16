@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using NVLearnHub.Application.DTOs.Common;
 using NVLearnHub.Application.DTOs.Wishlist;
 using NVLearnHub.Application.Interfaces.Services;
 

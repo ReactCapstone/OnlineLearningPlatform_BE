@@ -1,8 +1,4 @@
-using NVLearnHub.Application.DTOs.Common;
 using NVLearnHub.Application.DTOs.Wishlist;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace NVLearnHub.Application.Interfaces.Services
 {
