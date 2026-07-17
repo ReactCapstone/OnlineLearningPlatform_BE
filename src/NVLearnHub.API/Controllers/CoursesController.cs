@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NVLearnHub.API.Models;
-using NVLearnHub.Application.DTOs.Common;
 using NVLearnHub.Infrastructure.Data;
 using NVLearnHub.Domain.Entities.Catalog;
 

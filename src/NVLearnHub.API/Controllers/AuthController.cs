@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using NVLearnHub.Application.DTOs.Auth;
-using NVLearnHub.Application.DTOs.Common;
 using NVLearnHub.Application.Interfaces.Services;
 
 namespace NVLearnHub.API.Controllers

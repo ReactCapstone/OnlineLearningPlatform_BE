@@ -1,5 +1,4 @@
 ﻿using NVLearnHub.Application.DTOs.Auth;
-using NVLearnHub.Application.DTOs.Common;
 
 namespace NVLearnHub.Application.Interfaces.Services
 {

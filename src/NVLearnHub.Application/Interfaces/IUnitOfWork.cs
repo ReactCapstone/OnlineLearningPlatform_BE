@@ -1,13 +1,16 @@
 ﻿using NVLearnHub.Application.Interfaces.Repositories;
 
-namespace NVLearnHub.Application.Interfaces;
-
-public interface IUnitOfWork : IDisposable
+namespace NVLearnHub.Application.Interfaces
 {
-    // Identity
-    IUserRepository Users { get; }
-    IRoleRepository Roles { get; }
-    IPasswordResetTokenRepository PasswordResetTokens { get; }
+    public interface IUnitOfWork : IDisposable
+    {
+        IUserRepository Users { get; }
+        IRoleRepository Roles { get; }
+        IPasswordResetTokenRepository PasswordResetTokens { get; }
+        IAssessmentRepository Assessments { get; }
+        IAssessmentAttemptRepository AssessmentAttempts { get; }
+        IAssessmentAnswerRepository AssessmentAnswers { get; }
 
-    Task<int> SaveChangesAsync();
+        Task<int> SaveChangesAsync();
+    }
 }

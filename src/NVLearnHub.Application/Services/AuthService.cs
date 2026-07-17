@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using NVLearnHub.Application.DTOs.Auth;
-using NVLearnHub.Application.DTOs.Common;
 using NVLearnHub.Application.Interfaces;
 using NVLearnHub.Application.Interfaces.Services;
 using NVLearnHub.Domain.Entities.Identity;

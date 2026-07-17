@@ -1,10 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using NVLearnHub.Application.Interfaces;
+﻿using NVLearnHub.Application.Interfaces;
 using NVLearnHub.Application.Interfaces.Repositories;
 using NVLearnHub.Infrastructure.Data;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NVLearnHub.Infrastructure.Repositories
 {
@@ -13,22 +9,25 @@ namespace NVLearnHub.Infrastructure.Repositories
         private readonly LearnHubDbContext _context;
 
         public IUserRepository Users { get; }
-
-        public IRoleRepository Roles {  get; }
-
-        public IPasswordResetTokenRepository PasswordResetTokens {  get; }
+        public IRoleRepository Roles { get; }
+        public IPasswordResetTokenRepository PasswordResetTokens { get; }
+        public IAssessmentRepository Assessments { get; }
+        public IAssessmentAttemptRepository AssessmentAttempts { get; }
+        public IAssessmentAnswerRepository AssessmentAnswers { get; }
 
         public UnitOfWork(LearnHubDbContext context)
         {
-            this._context = context;
+            _context = context;
             Users = new UserRepository(_context);
             Roles = new RoleRepository(_context);
             PasswordResetTokens = new PasswordResetTokenRepository(_context);
+            Assessments = new AssessmentRepository(_context);
+            AssessmentAttempts = new AssessmentAttemptRepository(_context);
+            AssessmentAnswers = new AssessmentAnswerRepository(_context);
         }
 
-
         public async Task<int> SaveChangesAsync()
-        => await _context.SaveChangesAsync();
+            => await _context.SaveChangesAsync();
 
         public void Dispose()
             => _context.Dispose();

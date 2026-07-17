@@ -12,8 +12,8 @@ using NVLearnHub.Infrastructure.Data;
 namespace NVLearnHub.Infrastructure.Migrations
 {
     [DbContext(typeof(LearnHubDbContext))]
-    [Migration("20260708133201_Courses")]
-    partial class Courses
+    [Migration("20260716124252_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,217 @@ namespace NVLearnHub.Infrastructure.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Assessment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("PassPercentage")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TimeLimitMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.ToTable("Assessments");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.AssessmentAnswer", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AttemptId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SelectedOptionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AttemptId");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("SelectedOptionId");
+
+                    b.ToTable("AssessmentAnswers");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.AssessmentAttempt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssessmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("IsPassed")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssessmentId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AssessmentAttempts");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Question", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AssessmentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("OrderIndex")
+                        .HasColumnType("int");
+
+                    b.Property<string>("QuestionText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssessmentId");
+
+                    b.ToTable("Questions");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.QuestionOption", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OptionText")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("QuestionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.ToTable("QuestionOptions");
+                });
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Catalog.Category", b =>
                 {
@@ -98,6 +309,7 @@ namespace NVLearnHub.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Thumbnail")
@@ -330,14 +542,14 @@ namespace NVLearnHub.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 7, 8, 13, 32, 0, 157, DateTimeKind.Utc).AddTicks(2392),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "system",
                             Name = "Admin"
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 7, 8, 13, 32, 0, 157, DateTimeKind.Utc).AddTicks(3093),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "system",
                             Name = "Student"
                         });
@@ -351,6 +563,9 @@ namespace NVLearnHub.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AreaOfExpertise")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -362,12 +577,16 @@ namespace NVLearnHub.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FullName")
+                    b.Property<string>("FirstName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -383,11 +602,93 @@ namespace NVLearnHub.Infrastructure.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<int?>("YearsOfExperience")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Assessment", b =>
+                {
+                    b.HasOne("NVLearnHub.Domain.Entities.Catalog.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.AssessmentAnswer", b =>
+                {
+                    b.HasOne("NVLearnHub.Domain.Entities.Assessment.AssessmentAttempt", "Attempt")
+                        .WithMany("Answers")
+                        .HasForeignKey("AttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NVLearnHub.Domain.Entities.Assessment.Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NVLearnHub.Domain.Entities.Assessment.QuestionOption", "SelectedOption")
+                        .WithMany()
+                        .HasForeignKey("SelectedOptionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Attempt");
+
+                    b.Navigation("Question");
+
+                    b.Navigation("SelectedOption");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.AssessmentAttempt", b =>
+                {
+                    b.HasOne("NVLearnHub.Domain.Entities.Assessment.Assessment", "Assessment")
+                        .WithMany()
+                        .HasForeignKey("AssessmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("NVLearnHub.Domain.Entities.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Assessment");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Question", b =>
+                {
+                    b.HasOne("NVLearnHub.Domain.Entities.Assessment.Assessment", "Assessment")
+                        .WithMany("Questions")
+                        .HasForeignKey("AssessmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Assessment");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.QuestionOption", b =>
+                {
+                    b.HasOne("NVLearnHub.Domain.Entities.Assessment.Question", "Question")
+                        .WithMany("Options")
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
                 });
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Catalog.Category", b =>
@@ -471,6 +772,21 @@ namespace NVLearnHub.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Assessment", b =>
+                {
+                    b.Navigation("Questions");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.AssessmentAttempt", b =>
+                {
+                    b.Navigation("Answers");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Question", b =>
+                {
+                    b.Navigation("Options");
                 });
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Catalog.Category", b =>
