@@ -8,5 +8,6 @@ namespace NVLearnHub.Application.Interfaces.Services
         Task<ApiResponse<StartAttemptResponseDto>> StartAttemptAsync(int assessmentId, int userId);
         Task<ApiResponse<AssessmentResultDto>> SubmitAsync(SubmitAssessmentDto dto, int userId);
         Task<ApiResponse<AssessmentResultDto>> GetAttemptResultAsync(int attemptId, int userId);
+        Task<ApiResponse<AssessmentStatusDto>> GetStatusAsync(int courseId, int userId);
     }
 }

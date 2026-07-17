@@ -202,5 +202,53 @@ namespace NVLearnHub.Application.Services
 
             return new ApiResponse<AssessmentResultDto>(data, "Result retrieved successfully.");
         }
+
+        public async Task<ApiResponse<AssessmentStatusDto>> GetStatusAsync(int courseId, int userId)
+        {
+            // 1. Check if assessment exists for this course
+            var assessment = await _uow.Assessments.GetByCourseAsync(courseId);
+            if (assessment == null)
+                return new ApiResponse<AssessmentStatusDto>(false, "No assessment found for this course.", 404);
+
+            // 2. Get all attempts by this user for this assessment
+            var attempts = await _uow.AssessmentAttempts.GetByAssessmentAsync(assessment.Id);
+            var userAttempt = attempts
+                .Where(a => a.UserId == userId && a.SubmittedAt != null)
+                .OrderByDescending(a => a.SubmittedAt)
+                .FirstOrDefault();
+
+            // 3. No submitted attempt found
+            if (userAttempt == null)
+            {
+                var notAttempted = new AssessmentStatusDto
+                {
+                    HasAttempted = false,
+                    AttemptId = null,
+                    Result = null
+                };
+                return new ApiResponse<AssessmentStatusDto>(notAttempted, "No completed attempt found.");
+            }
+
+            // 4. Found a submitted attempt — return full result
+            var result = new AssessmentResultDto
+            {
+                AttemptId = userAttempt.Id,
+                Score = userAttempt.Score,
+                TotalQuestions = assessment.Questions.Count,
+                CorrectAnswers = (int)Math.Round(userAttempt.Score / 100.0 * assessment.Questions.Count),
+                PassPercentage = assessment.PassPercentage,
+                IsPassed = userAttempt.IsPassed,
+                SubmittedAt = userAttempt.SubmittedAt!.Value
+            };
+
+            var data = new AssessmentStatusDto
+            {
+                HasAttempted = true,
+                AttemptId = userAttempt.Id,
+                Result = result
+            };
+
+            return new ApiResponse<AssessmentStatusDto>(data, "Attempt found.");
+        }
     }
 }

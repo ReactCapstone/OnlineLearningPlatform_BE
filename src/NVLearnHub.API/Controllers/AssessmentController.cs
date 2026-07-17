@@ -57,6 +57,16 @@ namespace NVLearnHub.API.Controllers
             return Ok(response);
         }
 
+        // GET /api/Assessment/course/{courseId}/my-status
+        [HttpGet("course/{courseId}/my-status")]
+        public async Task<ActionResult<ApiResponse<AssessmentStatusDto>>> GetStatus(int courseId)
+        {
+            var userId = GetUserId();
+            var response = await _assessmentService.GetStatusAsync(courseId, userId);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
         // ─── Helper ──────────────────────────────────────────────────────────
         private int GetUserId()
             => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)
