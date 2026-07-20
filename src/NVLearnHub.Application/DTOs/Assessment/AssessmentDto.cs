@@ -7,6 +7,7 @@
         public int TimeLimitMinutes { get; set; }
         public int PassPercentage { get; set; }
         public int TotalQuestions { get; set; }
+        public int MaxAttempts { get; set; }      // ← 0 means unlimited
         public List<QuestionDto> Questions { get; set; } = new();
     }
 }

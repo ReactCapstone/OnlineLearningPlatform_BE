@@ -14,7 +14,7 @@ namespace NVLearnHub.Application.Services
             _uow = uow;
         }
 
-        // ─── Get Assessment For a Course ─────────────────────────────────────
+        // ─── Get Assessment For a Course ──────────────────────────────────────
 
         public async Task<ApiResponse<AssessmentDto>> GetByCourseAsync(int courseId)
         {
@@ -29,6 +29,7 @@ namespace NVLearnHub.Application.Services
                 TimeLimitMinutes = assessment.TimeLimitMinutes,
                 PassPercentage = assessment.PassPercentage,
                 TotalQuestions = assessment.Questions.Count,
+                MaxAttempts = assessment.MaxAttempts,   // ← added
                 Questions = assessment.Questions
                     .OrderBy(q => q.OrderIndex)
                     .Select(q => new QuestionDto
@@ -40,7 +41,6 @@ namespace NVLearnHub.Application.Services
                         {
                             Id = o.Id,
                             OptionText = o.OptionText
-                            // IsCorrect NOT mapped — never sent to student
                         }).ToList()
                     }).ToList()
             };
@@ -48,7 +48,6 @@ namespace NVLearnHub.Application.Services
             return new ApiResponse<AssessmentDto>(data, "Assessment retrieved successfully.");
         }
 
-        // ─── Start Attempt ────────────────────────────────────────────────────
 
         public async Task<ApiResponse<StartAttemptResponseDto>> StartAttemptAsync(int assessmentId, int userId)
         {
@@ -56,14 +55,33 @@ namespace NVLearnHub.Application.Services
             if (assessment == null)
                 return new ApiResponse<StartAttemptResponseDto>(false, "Assessment not found.", 404);
 
-            // Check if student already has an active attempt
-            var existingAttempts = await _uow.AssessmentAttempts.GetByAssessmentAsync(assessmentId);
-            var activeAttempt = existingAttempts
-                .FirstOrDefault(a => a.UserId == userId && a.SubmittedAt == null);
+            var allAttempts = await _uow.AssessmentAttempts.GetByAssessmentAsync(assessmentId);
+            var userAttempts = allAttempts.Where(a => a.UserId == userId).ToList();
+
+            // ── Block if genuinely in-progress ───────────────────────────────────
+            var activeAttempt = userAttempts.FirstOrDefault(a =>
+                a.SubmittedAt == null &&
+                a.StartedAt.AddMinutes(assessment.TimeLimitMinutes) > DateTime.UtcNow);
 
             if (activeAttempt != null)
-                return new ApiResponse<StartAttemptResponseDto>(false, "You already have an active attempt.", 400);
+                return new ApiResponse<StartAttemptResponseDto>(
+                    false,
+                    "You have an attempt already in progress.",
+                    400);
 
+            // ── Check attempt limit (0 = unlimited) ──────────────────────────────
+            int submittedCount = userAttempts.Count(a => a.SubmittedAt != null);
+
+            if (assessment.MaxAttempts > 0 && submittedCount >= assessment.MaxAttempts)
+            {
+                int limit = assessment.MaxAttempts;
+                return new ApiResponse<StartAttemptResponseDto>(
+                    false,
+                    $"You have reached the maximum of {limit} attempt{(limit == 1 ? "" : "s")} for this assessment.",
+                    400);
+            }
+
+            // ── Create new attempt ────────────────────────────────────────────────
             var now = DateTime.UtcNow;
 
             var attempt = new AssessmentAttempt
@@ -78,6 +96,8 @@ namespace NVLearnHub.Application.Services
             await _uow.AssessmentAttempts.AddAsync(attempt);
             await _uow.SaveChangesAsync();
 
+            int attemptNumber = submittedCount + 1;
+
             var data = new StartAttemptResponseDto
             {
                 AttemptId = attempt.Id,
@@ -86,37 +106,33 @@ namespace NVLearnHub.Application.Services
                 TimeLimitMinutes = assessment.TimeLimitMinutes
             };
 
-            return new ApiResponse<StartAttemptResponseDto>(data, "Attempt started successfully.");
+            return new ApiResponse<StartAttemptResponseDto>(
+                data,
+                $"Attempt {attemptNumber} started successfully.");
         }
 
         // ─── Submit Assessment ────────────────────────────────────────────────
 
         public async Task<ApiResponse<AssessmentResultDto>> SubmitAsync(SubmitAssessmentDto dto, int userId)
         {
-            // 1. Get attempt
             var attempt = await _uow.AssessmentAttempts.GetWithAnswersAsync(dto.AttemptId);
             if (attempt == null)
                 return new ApiResponse<AssessmentResultDto>(false, "Attempt not found.", 404);
 
-            // 2. Verify attempt belongs to this user
             if (attempt.UserId != userId)
                 return new ApiResponse<AssessmentResultDto>(false, "Unauthorized.", 401);
 
-            // 3. Check already submitted
             if (attempt.SubmittedAt != null)
                 return new ApiResponse<AssessmentResultDto>(false, "Attempt already submitted.", 400);
 
-            // 4. Get assessment with correct answers
             var assessment = await _uow.Assessments.GetWithQuestionsAndOptionsAsync(attempt.AssessmentId);
             if (assessment == null)
                 return new ApiResponse<AssessmentResultDto>(false, "Assessment not found.", 404);
 
-            // 5. Check time limit — auto submit if expired
             var elapsed = DateTime.UtcNow - attempt.StartedAt;
             if (elapsed.TotalMinutes > assessment.TimeLimitMinutes)
-                return new ApiResponse<AssessmentResultDto>(false, "Time limit exceeded. Attempt auto-submitted.", 400);
+                return new ApiResponse<AssessmentResultDto>(false, "Time limit exceeded.", 400);
 
-            // 6. Save answers + calculate score
             int correctCount = 0;
 
             foreach (var answer in dto.Answers)
@@ -129,27 +145,22 @@ namespace NVLearnHub.Application.Services
                 var selectedOption = question.Options
                     .FirstOrDefault(o => o.Id == answer.SelectedOptionId);
 
-                var isCorrect = selectedOption?.IsCorrect ?? false;
-                if (isCorrect) correctCount++;
+                if (selectedOption?.IsCorrect == true) correctCount++;
 
-                var assessmentAnswer = new AssessmentAnswer
+                await _uow.AssessmentAnswers.AddAsync(new AssessmentAnswer
                 {
                     AttemptId = attempt.Id,
                     QuestionId = answer.QuestionId,
                     SelectedOptionId = answer.SelectedOptionId
-                };
-
-                await _uow.AssessmentAnswers.AddAsync(assessmentAnswer);
+                });
             }
 
-            // 7. Calculate score percentage
             int totalQuestions = assessment.Questions.Count;
             int score = totalQuestions > 0
                 ? (int)Math.Round((double)correctCount / totalQuestions * 100)
                 : 0;
             bool isPassed = score >= assessment.PassPercentage;
 
-            // 8. Update attempt
             attempt.Score = score;
             attempt.IsPassed = isPassed;
             attempt.SubmittedAt = DateTime.UtcNow;
@@ -168,9 +179,11 @@ namespace NVLearnHub.Application.Services
                 SubmittedAt = attempt.SubmittedAt.Value
             };
 
-            return new ApiResponse<AssessmentResultDto>(data, isPassed
-                ? "Congratulations! You passed the assessment."
-                : "You did not pass. Please try again.");
+            return new ApiResponse<AssessmentResultDto>(
+                data,
+                isPassed
+                    ? "Congratulations! You passed."
+                    : "You did not pass. You can retake the assessment.");
         }
 
         // ─── Get Attempt Result ───────────────────────────────────────────────
@@ -187,7 +200,7 @@ namespace NVLearnHub.Application.Services
             if (attempt.SubmittedAt == null)
                 return new ApiResponse<AssessmentResultDto>(false, "Attempt not yet submitted.", 400);
 
-            var assessment = await _uow.Assessments.GetByIdAsync(attempt.AssessmentId);
+            var assessment = await _uow.Assessments.GetWithQuestionsAndOptionsAsync(attempt.AssessmentId);
 
             var data = new AssessmentResultDto
             {
@@ -203,52 +216,88 @@ namespace NVLearnHub.Application.Services
             return new ApiResponse<AssessmentResultDto>(data, "Result retrieved successfully.");
         }
 
+        // ─── Get Status (Replaces old HasAttempted) ───────────────────────────
+
         public async Task<ApiResponse<AssessmentStatusDto>> GetStatusAsync(int courseId, int userId)
         {
-            // 1. Check if assessment exists for this course
             var assessment = await _uow.Assessments.GetByCourseAsync(courseId);
             if (assessment == null)
                 return new ApiResponse<AssessmentStatusDto>(false, "No assessment found for this course.", 404);
 
-            // 2. Get all attempts by this user for this assessment
-            var attempts = await _uow.AssessmentAttempts.GetByAssessmentAsync(assessment.Id);
-            var userAttempt = attempts
-                .Where(a => a.UserId == userId && a.SubmittedAt != null)
+            var allAttempts = await _uow.AssessmentAttempts.GetByAssessmentAsync(assessment.Id);
+            var userAttempts = allAttempts
+                .Where(a => a.UserId == userId)
+                .OrderByDescending(a => a.StartedAt)
+                .ToList();
+
+            // In-progress = started, not submitted, not expired
+            var activeAttempt = userAttempts.FirstOrDefault(a =>
+                a.SubmittedAt == null &&
+                a.StartedAt.AddMinutes(assessment.TimeLimitMinutes) > DateTime.UtcNow);
+
+            // Latest submitted
+            var latestSubmitted = userAttempts
+                .Where(a => a.SubmittedAt != null)
                 .OrderByDescending(a => a.SubmittedAt)
                 .FirstOrDefault();
 
-            // 3. No submitted attempt found
-            if (userAttempt == null)
-            {
-                var notAttempted = new AssessmentStatusDto
-                {
-                    HasAttempted = false,
-                    AttemptId = null,
-                    Result = null
-                };
-                return new ApiResponse<AssessmentStatusDto>(notAttempted, "No completed attempt found.");
-            }
+            int submittedCount = userAttempts.Count(a => a.SubmittedAt != null);
+            bool isUnlimited = assessment.MaxAttempts == 0;
+            bool canRetake = isUnlimited || submittedCount < assessment.MaxAttempts;
 
-            // 4. Found a submitted attempt — return full result
-            var result = new AssessmentResultDto
+            AssessmentResultDto? latestResult = null;
+
+            if (latestSubmitted != null)
             {
-                AttemptId = userAttempt.Id,
-                Score = userAttempt.Score,
-                TotalQuestions = assessment.Questions.Count,
-                CorrectAnswers = (int)Math.Round(userAttempt.Score / 100.0 * assessment.Questions.Count),
-                PassPercentage = assessment.PassPercentage,
-                IsPassed = userAttempt.IsPassed,
-                SubmittedAt = userAttempt.SubmittedAt!.Value
-            };
+                latestResult = new AssessmentResultDto
+                {
+                    AttemptId = latestSubmitted.Id,
+                    Score = latestSubmitted.Score,
+                    TotalQuestions = assessment.Questions.Count,
+                    CorrectAnswers = (int)Math.Round(latestSubmitted.Score / 100.0 * assessment.Questions.Count),
+                    PassPercentage = assessment.PassPercentage,
+                    IsPassed = latestSubmitted.IsPassed,
+                    SubmittedAt = latestSubmitted.SubmittedAt!.Value
+                };
+            }
 
             var data = new AssessmentStatusDto
             {
-                HasAttempted = true,
-                AttemptId = userAttempt.Id,
-                Result = result
+                HasActiveAttempt = activeAttempt != null,
+                ActiveAttemptId = activeAttempt?.Id,
+                LatestResult = latestResult,
+                AttemptCount = submittedCount,
+                MaxAttempts = assessment.MaxAttempts,
+                AttemptsRemaining = isUnlimited ? null : assessment.MaxAttempts - submittedCount,
+                CanRetake = canRetake && activeAttempt == null
             };
 
-            return new ApiResponse<AssessmentStatusDto>(data, "Attempt found.");
+            return new ApiResponse<AssessmentStatusDto>(data, "Status retrieved successfully.");
+        }
+
+
+        // ─── Get Full Attempt History ─────────────────────────────────────────
+
+        public async Task<ApiResponse<IEnumerable<AttemptHistoryDto>>> GetAttemptHistoryAsync(int courseId, int userId)
+        {
+            var assessment = await _uow.Assessments.GetByCourseAsync(courseId);
+            if (assessment == null)
+                return new ApiResponse<IEnumerable<AttemptHistoryDto>>(false, "No assessment found for this course.", 404);
+
+            var allAttempts = await _uow.AssessmentAttempts.GetByAssessmentAsync(assessment.Id);
+
+            var history = allAttempts
+                .Where(a => a.UserId == userId && a.SubmittedAt != null)
+                .OrderByDescending(a => a.SubmittedAt)
+                .Select(a => new AttemptHistoryDto
+                {
+                    AttemptId = a.Id,
+                    Score = a.Score,
+                    IsPassed = a.IsPassed,
+                    SubmittedAt = a.SubmittedAt!.Value
+                });
+
+            return new ApiResponse<IEnumerable<AttemptHistoryDto>>(history, "Attempt history retrieved.");
         }
     }
 }
