@@ -1,12 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using NVLearnHub.Application.Interfaces;
-using NVLearnHub.Application.Interfaces.Repositories;
 using NVLearnHub.Infrastructure.Data;
 using NVLearnHub.Infrastructure.Repositories;
 using NVLearnHub.Infrastructure.Services;
 using NVLearnHub.Application.Interfaces.Services;
+using NVLearnHub.Application.Services;
 
 namespace NVLearnHub.Infrastructure.Extensions;
 

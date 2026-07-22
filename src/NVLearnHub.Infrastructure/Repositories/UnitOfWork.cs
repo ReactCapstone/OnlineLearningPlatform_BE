@@ -14,6 +14,8 @@ namespace NVLearnHub.Infrastructure.Repositories
         public IAssessmentRepository Assessments { get; }
         public IAssessmentAttemptRepository AssessmentAttempts { get; }
         public IAssessmentAnswerRepository AssessmentAnswers { get; }
+        public IWishlistRepository Wishlists { get; }
+        public ICourseRepository Courses { get; }
 
         public UnitOfWork(LearnHubDbContext context)
         {
@@ -24,6 +26,8 @@ namespace NVLearnHub.Infrastructure.Repositories
             Assessments = new AssessmentRepository(_context);
             AssessmentAttempts = new AssessmentAttemptRepository(_context);
             AssessmentAnswers = new AssessmentAnswerRepository(_context);
+            Wishlists = new WishlistRepository(_context);
+            Courses = new CourseRepository(_context);
         }
 
         public async Task<int> SaveChangesAsync()

@@ -1,82 +1,107 @@
 using NVLearnHub.Application.DTOs.Wishlist;
+using NVLearnHub.Application.Interfaces;
 using NVLearnHub.Application.Interfaces.Services;
+using NVLearnHub.Domain.Entities.Enrollment;
 
-namespace NVLearnHub.Infrastructure.Services
+namespace NVLearnHub.Application.Services
 {
     public class WishlistService : IWishlistService
     {
-        private static readonly List<WishlistCourseDto> AvailableCourses = new()
+        private readonly IUnitOfWork _uow;
+
+        public WishlistService(IUnitOfWork uow)
         {
-            new WishlistCourseDto
-            {
-                Id = 1,
-                Icon = "🎨",
-                IconBg = "rgba(139,92,246,0.2)",
-                Category = "Design",
-                Title = "UI/UX Design Fundamentals",
-                Description = "Learn to craft beautiful, user-centred interfaces from wireframes to polished prototypes.",
-                Duration = "6h 30m",
-                Lessons = 24
-            },
-            new WishlistCourseDto
-            {
-                Id = 2,
-                Icon = "⚛️",
-                IconBg = "rgba(99,102,241,0.2)",
-                Category = "Frontend",
-                Title = "React & TypeScript Mastery",
-                Description = "Build production-ready apps with React 18, TypeScript, and modern tooling.",
-                Duration = "8h 15m",
-                Lessons = 30
-            },
-            new WishlistCourseDto
-             {
-   Id= 3,
-    Icon= "🗄️",
-    IconBg= "rgba(34,197,94,0.2)",
-    Category= "Backend",
-    Title= "Node.js & REST APIs",
-    Description= "Design scalable server-side applications and RESTful APIs with Node, Express, and PostgreSQL.",
-    Duration= "8h 00m",
-    Lessons= 30,
-  }
-        };
-
-        // shared wishlist (no auth) for now
-       // private static readonly List<WishlistCourseDto> _wishlist = new(AvailableCourses);
-        private static readonly List<WishlistCourseDto> _wishlist = new();
-
-        public Task<ApiResponse<List<WishlistCourseDto>>> GetWishlistAsync(string? search = null)
-        {
-            var items = string.IsNullOrWhiteSpace(search)
-                ? _wishlist.ToList()
-                : _wishlist.Where(c => (c.Title ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)
-                                     || (c.Category ?? string.Empty).Contains(search, StringComparison.OrdinalIgnoreCase)).ToList();
-
-            return Task.FromResult(new ApiResponse<List<WishlistCourseDto>>(items));
+            _uow = uow;
         }
 
-        public Task<ApiResponse<WishlistCourseDto>> AddToWishlistAsync(int courseId)
+        // ─── Get Wishlist ─────────────────────────────────────────────────────
+
+        public async Task<ApiResponse<List<WishlistCourseDto>>> GetWishlistAsync(int userId, string? search = null)
         {
-            var course = AvailableCourses.FirstOrDefault(c => c.Id == courseId);
-            if (course == null)
-                return Task.FromResult(new ApiResponse<WishlistCourseDto>(false, "Course not found."));
+            var wishlistItems = await _uow.Wishlists.GetByUserAsync(userId);
 
-            if (_wishlist.Any(c => c.Id == courseId))
-                return Task.FromResult(new ApiResponse<WishlistCourseDto>(false, "Course already in wishlist."));
+            var dtos = wishlistItems
+                .Select(w => MapToDto(w))
+                .ToList();
 
-            _wishlist.Add(course);
-            return Task.FromResult(new ApiResponse<WishlistCourseDto>(course, "Course added to wishlist."));
+            // Apply search filter if provided
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                dtos = dtos.Where(c =>
+                    c.Title.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    c.Category.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    c.Description.Contains(search, StringComparison.OrdinalIgnoreCase)
+                ).ToList();
+            }
+
+            return new ApiResponse<List<WishlistCourseDto>>(dtos, "Wishlist retrieved successfully.");
         }
 
-        public Task<ApiResponse<bool>> RemoveFromWishlistAsync(int courseId)
-        {
-            var course = _wishlist.FirstOrDefault(c => c.Id == courseId);
-            if (course == null)
-                return Task.FromResult(new ApiResponse<bool>(false, "Course not found in wishlist."));
+        // ─── Add to Wishlist ──────────────────────────────────────────────────
 
-            _wishlist.Remove(course);
-            return Task.FromResult(new ApiResponse<bool>(true, "Course removed from wishlist."));
+        public async Task<ApiResponse<WishlistCourseDto>> AddToWishlistAsync(int userId, int courseId)
+        {
+            // Check course exists
+            var course = await _uow.Courses.GetByIdAsync(courseId);
+            if (course == null)
+                return new ApiResponse<WishlistCourseDto>(false, "Course not found.", 404);
+
+            // Check already in wishlist
+            if (await _uow.Wishlists.ExistsAsync(userId, courseId))
+                return new ApiResponse<WishlistCourseDto>(false, "Course is already in your wishlist.", 409);
+
+            // Add to wishlist
+            var wishlist = new Wishlist
+            {
+                UserId = userId,
+                CourseId = courseId
+            };
+
+            await _uow.Wishlists.AddAsync(wishlist);
+            await _uow.SaveChangesAsync();
+
+            // Fetch with full course details for response
+            var added = await _uow.Wishlists.GetByUserAndCourseAsync(userId, courseId);
+
+            return new ApiResponse<WishlistCourseDto>(
+                MapToDto(added!),
+                "Course added to wishlist.");
+        }
+
+        // ─── Remove from Wishlist ─────────────────────────────────────────────
+
+        public async Task<ApiResponse<bool>> RemoveFromWishlistAsync(int userId, int courseId)
+        {
+            var wishlist = await _uow.Wishlists.GetByUserAndCourseAsync(userId, courseId);
+            if (wishlist == null)
+                return new ApiResponse<bool>(false, "Course not found in your wishlist.", 404);
+
+            _uow.Wishlists.Remove(wishlist);
+            await _uow.SaveChangesAsync();
+
+            return new ApiResponse<bool>(true, "Course removed from wishlist.");
+        }
+
+        // ─── Mapper ───────────────────────────────────────────────────────────
+
+        private static WishlistCourseDto MapToDto(Wishlist w)
+        {
+            var totalLessons = w.Course.Sections?
+                .SelectMany(s => s.Lessons)
+                .Count() ?? 0;
+
+            return new WishlistCourseDto
+            {
+                Id = w.Course.Id,
+                Title = w.Course.Title,
+                Description = w.Course.Description,
+                Thumbnail = w.Course.Thumbnail,
+                Category = w.Course.Category?.Name ?? string.Empty,
+                Level = w.Course.Level,
+                Price = w.Course.Price,
+                TotalLessons = totalLessons,
+                TotalSections = w.Course.Sections?.Count ?? 0
+            };
         }
     }
 }
