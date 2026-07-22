@@ -75,3 +75,4 @@ DocumentLayout.json
 *.log
 
 VSWorkspaceState.json
+/src/NVLearnHub.API/appsettings.Development.json
