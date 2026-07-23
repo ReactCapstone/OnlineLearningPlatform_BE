@@ -41,7 +41,7 @@ namespace NVLearnHub.Infrastructure.Configurations
         public void Configure(EntityTypeBuilder<LessonProgress> builder)
         {
             builder.HasOne(lp => lp.Enrollment)
-                   .WithMany()
+                   .WithMany(e => e.LessonProgress)
                    .HasForeignKey(lp => lp.EnrollmentId)
                    .OnDelete(DeleteBehavior.Restrict);
 

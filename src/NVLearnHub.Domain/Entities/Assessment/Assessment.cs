@@ -1,6 +1,7 @@
 ﻿using NVLearnHub.Domain.Common;
-using NVLearnHub.Domain.Entities.Assessment;
 using NVLearnHub.Domain.Entities.Catalog;
+
+namespace NVLearnHub.Domain.Entities.Assessment;
 
 public class Assessment : BaseEntity
 {
@@ -9,7 +10,7 @@ public class Assessment : BaseEntity
     public string Title { get; set; } = default!;
     public int TimeLimitMinutes { get; set; }
     public int PassPercentage { get; set; }
-    public int MaxAttempts { get; set; } = 3; // ← default 3, 0 = unlimited
+    public int MaxAttempts { get; set; } = 3;
 
     public ICollection<Question> Questions { get; set; } = new List<Question>();
     public ICollection<AssessmentAttempt> Attempts { get; set; } = new List<AssessmentAttempt>();

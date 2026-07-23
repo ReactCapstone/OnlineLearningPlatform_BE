@@ -22,7 +22,7 @@ namespace NVLearnHub.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Assessment", b =>
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Assessment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -283,9 +283,6 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CategoryId1")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -333,8 +330,6 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("CategoryId1");
 
                     b.HasIndex("InstructorId");
 
@@ -429,6 +424,51 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.ToTable("Sections");
                 });
 
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Enrollment.Certificate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CertificateNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CertificateUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Certificates");
+                });
+
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Enrollment.Enrollment", b =>
                 {
                     b.Property<int>("Id")
@@ -511,6 +551,87 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.HasIndex("LessonId");
 
                     b.ToTable("LessonProgress");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Enrollment.Review", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Reviews");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Enrollment.Wishlist", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Wishlists");
                 });
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Identity.PasswordResetToken", b =>
@@ -701,7 +822,7 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Assessment", b =>
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Assessment", b =>
                 {
                     b.HasOne("NVLearnHub.Domain.Entities.Catalog.Course", "Course")
                         .WithMany()
@@ -741,7 +862,7 @@ namespace NVLearnHub.Infrastructure.Migrations
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.AssessmentAttempt", b =>
                 {
-                    b.HasOne("Assessment", null)
+                    b.HasOne("NVLearnHub.Domain.Entities.Assessment.Assessment", null)
                         .WithMany("Attempts")
                         .HasForeignKey("AssessmentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -758,7 +879,7 @@ namespace NVLearnHub.Infrastructure.Migrations
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Question", b =>
                 {
-                    b.HasOne("Assessment", null)
+                    b.HasOne("NVLearnHub.Domain.Entities.Assessment.Assessment", null)
                         .WithMany("Questions")
                         .HasForeignKey("AssessmentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -788,14 +909,10 @@ namespace NVLearnHub.Infrastructure.Migrations
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Catalog.Course", b =>
                 {
                     b.HasOne("NVLearnHub.Domain.Entities.Catalog.Category", "Category")
-                        .WithMany()
+                        .WithMany("Courses")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("NVLearnHub.Domain.Entities.Catalog.Category", null)
-                        .WithMany("Courses")
-                        .HasForeignKey("CategoryId1");
 
                     b.HasOne("NVLearnHub.Domain.Entities.Identity.User", "Instructor")
                         .WithMany()
@@ -824,10 +941,29 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.HasOne("NVLearnHub.Domain.Entities.Catalog.Course", "Course")
                         .WithMany("Sections")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Course");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Enrollment.Certificate", b =>
+                {
+                    b.HasOne("NVLearnHub.Domain.Entities.Catalog.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NVLearnHub.Domain.Entities.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Enrollment.Enrollment", b =>
@@ -835,13 +971,13 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.HasOne("NVLearnHub.Domain.Entities.Catalog.Course", "Course")
                         .WithMany()
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("NVLearnHub.Domain.Entities.Identity.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -854,18 +990,56 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.HasOne("NVLearnHub.Domain.Entities.Enrollment.Enrollment", "Enrollment")
                         .WithMany("LessonProgress")
                         .HasForeignKey("EnrollmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("NVLearnHub.Domain.Entities.Catalog.Lesson", "Lesson")
                         .WithMany()
                         .HasForeignKey("LessonId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Enrollment");
 
                     b.Navigation("Lesson");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Enrollment.Review", b =>
+                {
+                    b.HasOne("NVLearnHub.Domain.Entities.Catalog.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NVLearnHub.Domain.Entities.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Enrollment.Wishlist", b =>
+                {
+                    b.HasOne("NVLearnHub.Domain.Entities.Catalog.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("NVLearnHub.Domain.Entities.Identity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Course");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Identity.PasswordResetToken", b =>
@@ -901,7 +1075,7 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("Assessment", b =>
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Assessment", b =>
                 {
                     b.Navigation("Attempts");
 

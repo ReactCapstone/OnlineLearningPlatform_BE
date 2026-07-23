@@ -14,7 +14,7 @@ namespace NVLearnHub.Infrastructure.Configurations
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(c => c.Category)
-                   .WithMany()
+                   .WithMany(c => c.Courses)
                    .HasForeignKey(c => c.CategoryId)
                    .OnDelete(DeleteBehavior.Restrict);
         }

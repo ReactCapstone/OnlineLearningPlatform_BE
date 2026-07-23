@@ -12,8 +12,8 @@ using NVLearnHub.Infrastructure.Data;
 namespace NVLearnHub.Infrastructure.Migrations
 {
     [DbContext(typeof(LearnHubDbContext))]
-    [Migration("20260722064738_AddMissingTables")]
-    partial class AddMissingTables
+    [Migration("20260723092648_TestMigration")]
+    partial class TestMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace NVLearnHub.Infrastructure.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Assessment", b =>
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Assessment", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -286,9 +286,6 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("CategoryId1")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -336,8 +333,6 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("CategoryId1");
 
                     b.HasIndex("InstructorId");
 
@@ -539,9 +534,6 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.Property<int>("EnrollmentId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("EnrollmentId1")
-                        .HasColumnType("int");
-
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("bit");
 
@@ -558,8 +550,6 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EnrollmentId");
-
-                    b.HasIndex("EnrollmentId1");
 
                     b.HasIndex("LessonId");
 
@@ -835,7 +825,7 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Assessment", b =>
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Assessment", b =>
                 {
                     b.HasOne("NVLearnHub.Domain.Entities.Catalog.Course", "Course")
                         .WithMany()
@@ -875,7 +865,7 @@ namespace NVLearnHub.Infrastructure.Migrations
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.AssessmentAttempt", b =>
                 {
-                    b.HasOne("Assessment", null)
+                    b.HasOne("NVLearnHub.Domain.Entities.Assessment.Assessment", null)
                         .WithMany("Attempts")
                         .HasForeignKey("AssessmentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -892,7 +882,7 @@ namespace NVLearnHub.Infrastructure.Migrations
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Question", b =>
                 {
-                    b.HasOne("Assessment", null)
+                    b.HasOne("NVLearnHub.Domain.Entities.Assessment.Assessment", null)
                         .WithMany("Questions")
                         .HasForeignKey("AssessmentId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -922,14 +912,10 @@ namespace NVLearnHub.Infrastructure.Migrations
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Catalog.Course", b =>
                 {
                     b.HasOne("NVLearnHub.Domain.Entities.Catalog.Category", "Category")
-                        .WithMany()
+                        .WithMany("Courses")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("NVLearnHub.Domain.Entities.Catalog.Category", null)
-                        .WithMany("Courses")
-                        .HasForeignKey("CategoryId1");
 
                     b.HasOne("NVLearnHub.Domain.Entities.Identity.User", "Instructor")
                         .WithMany()
@@ -1005,14 +991,10 @@ namespace NVLearnHub.Infrastructure.Migrations
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Enrollment.LessonProgress", b =>
                 {
                     b.HasOne("NVLearnHub.Domain.Entities.Enrollment.Enrollment", "Enrollment")
-                        .WithMany()
+                        .WithMany("LessonProgress")
                         .HasForeignKey("EnrollmentId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.HasOne("NVLearnHub.Domain.Entities.Enrollment.Enrollment", null)
-                        .WithMany("LessonProgress")
-                        .HasForeignKey("EnrollmentId1");
 
                     b.HasOne("NVLearnHub.Domain.Entities.Catalog.Lesson", "Lesson")
                         .WithMany()
@@ -1096,7 +1078,7 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.Navigation("Role");
                 });
 
-            modelBuilder.Entity("Assessment", b =>
+            modelBuilder.Entity("NVLearnHub.Domain.Entities.Assessment.Assessment", b =>
                 {
                     b.Navigation("Attempts");
 
