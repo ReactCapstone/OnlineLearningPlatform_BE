@@ -1,13 +1,15 @@
-namespace NVLearnHub.Application.DTOs.Wishlist;
-
-public class WishlistCourseDto
+namespace NVLearnHub.Application.DTOs.Wishlist
 {
-    public int Id { get; set; }
-    public string Icon { get; set; } = default!;
-    public string IconBg { get; set; } = default!;
-    public string Category { get; set; } = default!;
-    public string Title { get; set; } = default!;
-    public string? Description { get; set; }
-    public string? Duration { get; set; }
-    public int? Lessons { get; set; }
+    public class WishlistCourseDto
+    {
+        public int Id { get; set; }
+        public string Title { get; set; } = default!;
+        public string Description { get; set; } = default!;
+        public string Thumbnail { get; set; } = default!;
+        public string Category { get; set; } = default!;
+        public string Level { get; set; } = default!;
+        public decimal Price { get; set; }
+        public int TotalLessons { get; set; }
+        public int TotalSections { get; set; }
+    }
 }

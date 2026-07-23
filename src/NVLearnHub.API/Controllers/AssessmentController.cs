@@ -14,44 +14,11 @@ namespace NVLearnHub.API.Controllers
             _assessmentService = assessmentService;
         }
 
-        // GET /api/assessment/course/{courseId}
+        // GET /api/Assessment/course/{courseId}
         [HttpGet("course/{courseId}")]
         public async Task<ActionResult<ApiResponse<AssessmentDto>>> GetByCourse(int courseId)
         {
             var response = await _assessmentService.GetByCourseAsync(courseId);
-            if (!response.Success)
-                return StatusCode(response.StatusCode, response);
-            return Ok(response);
-        }
-
-        // POST /api/assessment/{id}/start
-        [HttpPost("{id}/start")]
-        public async Task<ActionResult<ApiResponse<StartAttemptResponseDto>>> StartAttempt(int id)
-        {
-            var userId = GetUserId();
-            var response = await _assessmentService.StartAttemptAsync(id, userId);
-            if (!response.Success)
-                return StatusCode(response.StatusCode, response);
-            return Ok(response);
-        }
-
-        // POST /api/assessment/submit
-        [HttpPost("submit")]
-        public async Task<ActionResult<ApiResponse<AssessmentResultDto>>> Submit([FromBody] SubmitAssessmentDto dto)
-        {
-            var userId = GetUserId();
-            var response = await _assessmentService.SubmitAsync(dto, userId);
-            if (!response.Success)
-                return StatusCode(response.StatusCode, response);
-            return Ok(response);
-        }
-
-        // GET /api/assessment/attempts/{attemptId}
-        [HttpGet("attempts/{attemptId}")]
-        public async Task<ActionResult<ApiResponse<AssessmentResultDto>>> GetResult(int attemptId)
-        {
-            var userId = GetUserId();
-            var response = await _assessmentService.GetAttemptResultAsync(attemptId, userId);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);
@@ -67,6 +34,51 @@ namespace NVLearnHub.API.Controllers
                 return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
+
+        // GET /api/Assessment/course/{courseId}/attempts
+        [HttpGet("course/{courseId}/attempts")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<AttemptHistoryDto>>>> GetHistory(int courseId)
+        {
+            var userId = GetUserId();
+            var response = await _assessmentService.GetAttemptHistoryAsync(courseId, userId);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
+
+        // POST /api/Assessment/{id}/start
+        [HttpPost("{id}/start")]
+        public async Task<ActionResult<ApiResponse<StartAttemptResponseDto>>> StartAttempt(int id)
+        {
+            var userId = GetUserId();
+            var response = await _assessmentService.StartAttemptAsync(id, userId);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
+
+        // POST /api/Assessment/submit
+        [HttpPost("submit")]
+        public async Task<ActionResult<ApiResponse<AssessmentResultDto>>> Submit([FromBody] SubmitAssessmentDto dto)
+        {
+            var userId = GetUserId();
+            var response = await _assessmentService.SubmitAsync(dto, userId);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
+
+        // GET /api/Assessment/attempts/{attemptId}
+        [HttpGet("attempts/{attemptId}")]
+        public async Task<ActionResult<ApiResponse<AssessmentResultDto>>> GetResult(int attemptId)
+        {
+            var userId = GetUserId();
+            var response = await _assessmentService.GetAttemptResultAsync(attemptId, userId);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
+
         // ─── Helper ──────────────────────────────────────────────────────────
         private int GetUserId()
             => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)

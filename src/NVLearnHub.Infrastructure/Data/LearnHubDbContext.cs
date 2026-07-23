@@ -36,9 +36,9 @@ namespace NVLearnHub.Infrastructure.Data
         // Enrollment
         public DbSet<Enrollment> Enrollments => Set<Enrollment>();
         public DbSet<LessonProgress> LessonProgress => Set<LessonProgress>();
-       // public DbSet<Wishlist> Wishlists => Set<Wishlist>();
-        //public DbSet<Review> Reviews => Set<Review>();
-        //public DbSet<Certificate> Certificates => Set<Certificate>();
+        public DbSet<Wishlist> Wishlists => Set<Wishlist>();
+        public DbSet<Review> Reviews => Set<Review>();
+        public DbSet<Certificate> Certificates => Set<Certificate>();
 
         // Assessment
         public DbSet<Assessment> Assessments => Set<Assessment>();

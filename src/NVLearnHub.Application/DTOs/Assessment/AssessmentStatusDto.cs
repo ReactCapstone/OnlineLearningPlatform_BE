@@ -2,8 +2,12 @@
 {
     public class AssessmentStatusDto
     {
-        public bool HasAttempted { get; set; }
-        public int? AttemptId { get; set; }
-        public AssessmentResultDto? Result { get; set; }
+        public bool HasActiveAttempt { get; set; }
+        public int? ActiveAttemptId { get; set; }
+        public AssessmentResultDto? LatestResult { get; set; }
+        public int AttemptCount { get; set; }
+        public int MaxAttempts { get; set; }        // 0 = unlimited
+        public int? AttemptsRemaining { get; set; } // null if unlimited
+        public bool CanRetake { get; set; }         // false if limit reached
     }
 }
