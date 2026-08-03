@@ -14,6 +14,71 @@ namespace NVLearnHub.Application.Services
             _uow = uow;
         }
 
+        // ─── Admin: Create Assessment ───────────────────────────────────────
+
+        public async Task<ApiResponse<AssessmentDto>> CreateAssessmentAsync(CreateAssessmentDto dto)
+        {
+            // ensure course exists
+            var course = await _uow.Courses.GetByIdAsync(dto.CourseId);
+            if (course == null)
+                return new ApiResponse<AssessmentDto>(false, "Course not found.", 404);
+
+            var assessment = new Domain.Entities.Assessment.Assessment
+            {
+                CourseId = dto.CourseId,
+                Title = dto.Title,
+                TimeLimitMinutes = dto.TimeLimitMinutes,
+                PassPercentage = dto.PassPercentage,
+                MaxAttempts = dto.MaxAttempts
+            };
+
+            await _uow.Assessments.AddAsync(assessment);
+            await _uow.SaveChangesAsync();
+
+            var data = new AssessmentDto
+            {
+                Id = assessment.Id,
+                Title = assessment.Title,
+                TimeLimitMinutes = assessment.TimeLimitMinutes,
+                PassPercentage = assessment.PassPercentage,
+                TotalQuestions = 0,
+                MaxAttempts = assessment.MaxAttempts,
+                Questions = new List<QuestionDto>()
+            };
+
+            return new ApiResponse<AssessmentDto>(data, "Assessment created successfully.");
+        }
+
+        // ─── Admin: Delete Assessment ───────────────────────────────────────
+
+        public async Task<ApiResponse<bool>> DeleteAssessmentAsync(int assessmentId)
+        {
+            // Load assessment with questions/options to ensure children are tracked
+            var assessment = await _uow.Assessments.GetWithQuestionsAndOptionsAsync(assessmentId);
+            if (assessment == null)
+                return new ApiResponse<bool>(false, "Assessment not found.", 404);
+
+            // Remove any answers for attempts of this assessment, then remove the attempts
+            var attempts = await _uow.AssessmentAttempts.GetByAssessmentAsync(assessmentId);
+            foreach (var attempt in attempts)
+            {
+                var answers = await _uow.AssessmentAnswers.FindAsync(a => a.AttemptId == attempt.Id);
+                foreach (var ans in answers)
+                    _uow.AssessmentAnswers.Remove(ans);
+
+                _uow.AssessmentAttempts.Remove(attempt);
+            }
+
+            // At this point, questions and options are tracked as children of assessment (loaded above).
+            // Removing the assessment should cascade-delete questions and options if EF Core cascade is configured.
+            // Remove the assessment entity
+            _uow.Assessments.Remove(assessment);
+
+            await _uow.SaveChangesAsync();
+
+            return new ApiResponse<bool>(true, "Assessment deleted successfully.");
+        }
+
         // ─── Get Assessment For a Course ──────────────────────────────────────
 
         public async Task<ApiResponse<AssessmentDto>> GetByCourseAsync(int courseId)

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using NVLearnHub.API.Models;
 using NVLearnHub.Infrastructure.Data;
 using NVLearnHub.Domain.Entities.Catalog;
@@ -79,7 +80,7 @@ namespace NVLearnHub.API.Controllers
         }
 
         [HttpPost]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<CourseDto>>> Create([FromBody] CreateCourseDto dto)
         {
             var course = new Course
@@ -116,7 +117,7 @@ namespace NVLearnHub.API.Controllers
         }
 
         [HttpPut("{id}")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<string>>> Update(int id, [FromBody] CreateCourseDto dto)
         {
             var course = await _context.Courses.FindAsync(id);
@@ -140,12 +141,64 @@ namespace NVLearnHub.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<string>>> Delete(int id)
         {
-            var course = await _context.Courses.FindAsync(id);
+            // Load course along with sections and lessons
+            var course = await _context.Courses
+                .Include(c => c.Sections)
+                    .ThenInclude(s => s.Lessons)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
             if (course == null) return NotFound(new ApiResponse<string>(false, "Course not found."));
 
+            // Remove lessons and sections
+            var lessons = course.Sections.SelectMany(s => s.Lessons).ToList();
+            if (lessons.Any()) _context.Lessons.RemoveRange(lessons);
+
+            if (course.Sections.Any()) _context.Sections.RemoveRange(course.Sections);
+
+            // Remove assessments and their related data (questions/options/attempts/answers)
+            var assessments = await _context.Assessments
+                .Where(a => a.CourseId == id)
+                .ToListAsync();
+
+            if (assessments.Any())
+            {
+                // Load attempts and answers for all assessments in one go
+                var assessmentIds = assessments.Select(a => a.Id).ToList();
+
+                var attempts = await _context.AssessmentAttempts
+                    .Where(at => assessmentIds.Contains(at.AssessmentId))
+                    .ToListAsync();
+
+                var attemptIds = attempts.Select(a => a.Id).ToList();
+
+                if (attemptIds.Any())
+                {
+                    var answers = await _context.AssessmentAnswers
+                        .Where(ans => attemptIds.Contains(ans.AttemptId))
+                        .ToListAsync();
+                    if (answers.Any()) _context.AssessmentAnswers.RemoveRange(answers);
+
+                    _context.AssessmentAttempts.RemoveRange(attempts);
+                }
+
+                // Load questions and options for these assessments and remove
+                var questions = await _context.Questions
+                    .Where(q => assessmentIds.Contains(q.AssessmentId))
+                    .Include(q => q.Options)
+                    .ToListAsync();
+
+                var options = questions.SelectMany(q => q.Options).ToList();
+                if (options.Any()) _context.QuestionOptions.RemoveRange(options);
+                if (questions.Any()) _context.Questions.RemoveRange(questions);
+
+                // Remove assessments
+                _context.Assessments.RemoveRange(assessments);
+            }
+
+            // Finally remove the course
             _context.Courses.Remove(course);
             await _context.SaveChangesAsync();
 
