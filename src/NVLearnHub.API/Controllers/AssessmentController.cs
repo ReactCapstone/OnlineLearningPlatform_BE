@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using NVLearnHub.Application.DTOs.Assessment;
 using NVLearnHub.Application.Interfaces.Services;
 using System.Security.Claims;
@@ -12,6 +13,28 @@ namespace NVLearnHub.API.Controllers
         public AssessmentController(IAssessmentService assessmentService)
         {
             _assessmentService = assessmentService;
+        }
+
+        // ADMIN: create assessment for a course
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<AssessmentDto>>> Create([FromBody] CreateAssessmentDto dto)
+        {
+            var response = await _assessmentService.CreateAssessmentAsync(dto);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return CreatedAtAction(nameof(GetByCourse), new { courseId = dto.CourseId }, response);
+        }
+
+        // ADMIN: delete assessment
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
+        {
+            var response = await _assessmentService.DeleteAssessmentAsync(id);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
         }
 
         // GET /api/Assessment/course/{courseId}
