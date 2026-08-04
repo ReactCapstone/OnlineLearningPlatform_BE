@@ -11,6 +11,7 @@ public static class ApplicationServiceExtensions
         // Register all application-layer services here as they are built
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAssessmentService, AssessmentService>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
         // Future services go here — one line each:
 

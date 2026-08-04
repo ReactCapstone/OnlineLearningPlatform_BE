@@ -12,6 +12,9 @@ namespace NVLearnHub.Application.Interfaces
         IAssessmentAnswerRepository AssessmentAnswers { get; }
         IWishlistRepository Wishlists { get; }
         ICourseRepository Courses { get; }
+        IEnrollmentRepository Enrollments { get; }
+        ILessonProgressRepository LessonProgress { get; }
+        ICertificateRepository Certificates { get; }
 
         Task<int> SaveChangesAsync();
     }
