@@ -1,5 +1,6 @@
 ﻿using NVLearnHub.Application.Interfaces;
 using NVLearnHub.Application.Interfaces.Repositories;
+using NVLearnHub.Domain.Entities.Enrollment;
 using NVLearnHub.Infrastructure.Data;
 
 namespace NVLearnHub.Infrastructure.Repositories
@@ -16,6 +17,9 @@ namespace NVLearnHub.Infrastructure.Repositories
         public IAssessmentAnswerRepository AssessmentAnswers { get; }
         public IWishlistRepository Wishlists { get; }
         public ICourseRepository Courses { get; }
+        public IEnrollmentRepository Enrollments { get; }
+        public ILessonProgressRepository LessonProgress { get; }
+        public ICertificateRepository Certificates { get; }
 
         public UnitOfWork(LearnHubDbContext context)
         {
@@ -28,6 +32,9 @@ namespace NVLearnHub.Infrastructure.Repositories
             AssessmentAnswers = new AssessmentAnswerRepository(_context);
             Wishlists = new WishlistRepository(_context);
             Courses = new CourseRepository(_context);
+            Enrollments = new EnrollmentRepository(_context);
+            LessonProgress = new LessonProgressRepository(_context);
+            Certificates = new CertificateRepository(_context);
         }
 
         public async Task<int> SaveChangesAsync()
