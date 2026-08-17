@@ -20,6 +20,7 @@ namespace NVLearnHub.Infrastructure.Repositories
         public IEnrollmentRepository Enrollments { get; }
         public ILessonProgressRepository LessonProgress { get; }
         public ICertificateRepository Certificates { get; }
+        public ICategoryRepository Categories { get; }
 
         public UnitOfWork(LearnHubDbContext context)
         {
@@ -35,6 +36,7 @@ namespace NVLearnHub.Infrastructure.Repositories
             Enrollments = new EnrollmentRepository(_context);
             LessonProgress = new LessonProgressRepository(_context);
             Certificates = new CertificateRepository(_context);
+            Categories = new CategoryRepository(_context);
         }
 
         public async Task<int> SaveChangesAsync()
