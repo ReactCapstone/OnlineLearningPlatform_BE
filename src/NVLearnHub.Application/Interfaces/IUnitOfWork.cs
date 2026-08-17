@@ -15,6 +15,7 @@ namespace NVLearnHub.Application.Interfaces
         IEnrollmentRepository Enrollments { get; }
         ILessonProgressRepository LessonProgress { get; }
         ICertificateRepository Certificates { get; }
+        ICategoryRepository Categories { get; }
 
         Task<int> SaveChangesAsync();
     }
