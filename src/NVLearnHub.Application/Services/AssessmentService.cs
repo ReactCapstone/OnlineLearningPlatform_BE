@@ -14,6 +14,75 @@ namespace NVLearnHub.Application.Services
             _uow = uow;
         }
 
+        // ─── Admin: Add questions to an existing assessment ───────────────────
+
+        public async Task<ApiResponse<AssessmentDto>> AddQuestionsAsync(int assessmentId, List<CreateQuestionDto> questions)
+        {
+            var assessment = await _uow.Assessments.GetByIdAsync(assessmentId);
+            if (assessment == null)
+                return new ApiResponse<AssessmentDto>(false, "Assessment not found.", 404);
+
+            // Ensure questions collection is loaded/tracked
+            var existing = await _uow.Assessments.GetWithQuestionsAndOptionsAsync(assessmentId);
+            if (existing == null)
+                return new ApiResponse<AssessmentDto>(false, "Assessment not found.", 404);
+
+            if (questions == null || !questions.Any())
+                return new ApiResponse<AssessmentDto>(false, "No questions provided.", 400);
+
+            foreach (var q in questions)
+            {
+                var question = new Question
+                {
+                    QuestionText = q.QuestionText,
+                    OrderIndex = q.OrderIndex,
+                    Options = new List<QuestionOption>()
+                };
+
+                if (q.Options != null && q.Options.Any())
+                {
+                    foreach (var opt in q.Options)
+                    {
+                        question.Options.Add(new QuestionOption
+                        {
+                            OptionText = opt.OptionText,
+                            IsCorrect = opt.IsCorrect
+                        });
+                    }
+                }
+
+                existing.Questions.Add(question);
+            }
+
+            _uow.Assessments.Update(existing);
+            await _uow.SaveChangesAsync();
+
+            // Map to DTO
+            var dto = new AssessmentDto
+            {
+                Id = existing.Id,
+                Title = existing.Title,
+                TimeLimitMinutes = existing.TimeLimitMinutes,
+                PassPercentage = existing.PassPercentage,
+                TotalQuestions = existing.Questions.Count,
+                MaxAttempts = existing.MaxAttempts,
+                Questions = existing.Questions.OrderBy(q => q.OrderIndex)
+                    .Select(q => new QuestionDto
+                    {
+                        Id = q.Id,
+                        QuestionText = q.QuestionText,
+                        OrderIndex = q.OrderIndex,
+                        Options = q.Options.Select(o => new QuestionOptionDto
+                        {
+                            Id = o.Id,
+                            OptionText = o.OptionText
+                        }).ToList()
+                    }).ToList()
+            };
+
+            return new ApiResponse<AssessmentDto>(dto, "Questions added successfully.");
+        }
+
         // ─── Admin: Create Assessment ───────────────────────────────────────
 
         public async Task<ApiResponse<AssessmentDto>> CreateAssessmentAsync(CreateAssessmentDto dto)
@@ -22,15 +91,43 @@ namespace NVLearnHub.Application.Services
             var course = await _uow.Courses.GetByIdAsync(dto.CourseId);
             if (course == null)
                 return new ApiResponse<AssessmentDto>(false, "Course not found.", 404);
-
             var assessment = new Domain.Entities.Assessment.Assessment
             {
                 CourseId = dto.CourseId,
                 Title = dto.Title,
                 TimeLimitMinutes = dto.TimeLimitMinutes,
                 PassPercentage = dto.PassPercentage,
-                MaxAttempts = dto.MaxAttempts
+                MaxAttempts = dto.MaxAttempts,
+                Questions = new List<Question>()
             };
+
+            // Add questions and options if provided
+            if (dto.Questions != null && dto.Questions.Any())
+            {
+                foreach (var q in dto.Questions)
+                {
+                    var question = new Question
+                    {
+                        QuestionText = q.QuestionText,
+                        OrderIndex = q.OrderIndex,
+                        Options = new List<QuestionOption>()
+                    };
+
+                    if (q.Options != null && q.Options.Any())
+                    {
+                        foreach (var opt in q.Options)
+                        {
+                            question.Options.Add(new QuestionOption
+                            {
+                                OptionText = opt.OptionText,
+                                IsCorrect = opt.IsCorrect
+                            });
+                        }
+                    }
+
+                    assessment.Questions.Add(question);
+                }
+            }
 
             await _uow.Assessments.AddAsync(assessment);
             await _uow.SaveChangesAsync();
@@ -41,9 +138,20 @@ namespace NVLearnHub.Application.Services
                 Title = assessment.Title,
                 TimeLimitMinutes = assessment.TimeLimitMinutes,
                 PassPercentage = assessment.PassPercentage,
-                TotalQuestions = 0,
+                TotalQuestions = assessment.Questions?.Count ?? 0,
                 MaxAttempts = assessment.MaxAttempts,
-                Questions = new List<QuestionDto>()
+                Questions = assessment.Questions?.OrderBy(q => q.OrderIndex)
+                    .Select(q => new QuestionDto
+                    {
+                        Id = q.Id,
+                        QuestionText = q.QuestionText,
+                        OrderIndex = q.OrderIndex,
+                        Options = q.Options.Select(o => new QuestionOptionDto
+                        {
+                            Id = o.Id,
+                            OptionText = o.OptionText
+                        }).ToList()
+                    }).ToList() ?? new List<QuestionDto>()
             };
 
             return new ApiResponse<AssessmentDto>(data, "Assessment created successfully.");
@@ -95,6 +203,40 @@ namespace NVLearnHub.Application.Services
                 PassPercentage = assessment.PassPercentage,
                 TotalQuestions = assessment.Questions.Count,
                 MaxAttempts = assessment.MaxAttempts,   // ← added
+                Questions = assessment.Questions
+                    .OrderBy(q => q.OrderIndex)
+                    .Select(q => new QuestionDto
+                    {
+                        Id = q.Id,
+                        QuestionText = q.QuestionText,
+                        OrderIndex = q.OrderIndex,
+                        Options = q.Options.Select(o => new QuestionOptionDto
+                        {
+                            Id = o.Id,
+                            OptionText = o.OptionText
+                        }).ToList()
+                    }).ToList()
+            };
+
+            return new ApiResponse<AssessmentDto>(data, "Assessment retrieved successfully.");
+        }
+
+        // ─── Student: Get assessment (questions/options visible for taking quiz) ──
+        public async Task<ApiResponse<AssessmentDto>> GetForStudentAsync(int courseId)
+        {
+            // Reuse same repository method which includes questions and options
+            var assessment = await _uow.Assessments.GetByCourseAsync(courseId);
+            if (assessment == null)
+                return new ApiResponse<AssessmentDto>(false, "No assessment found for this course.", 404);
+
+            var data = new AssessmentDto
+            {
+                Id = assessment.Id,
+                Title = assessment.Title,
+                TimeLimitMinutes = assessment.TimeLimitMinutes,
+                PassPercentage = assessment.PassPercentage,
+                TotalQuestions = assessment.Questions.Count,
+                MaxAttempts = assessment.MaxAttempts,
                 Questions = assessment.Questions
                     .OrderBy(q => q.OrderIndex)
                     .Select(q => new QuestionDto

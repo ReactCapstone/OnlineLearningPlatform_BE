@@ -37,11 +37,33 @@ namespace NVLearnHub.API.Controllers
             return Ok(response);
         }
 
+        // ADMIN: add questions to an assessment
+        [HttpPost("{id}/questions")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<AssessmentDto>>> AddQuestions(int id, [FromBody] List<CreateQuestionDto> questions)
+        {
+            var response = await _assessmentService.AddQuestionsAsync(id, questions);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
+
         // GET /api/Assessment/course/{courseId}
         [HttpGet("course/{courseId}")]
         public async Task<ActionResult<ApiResponse<AssessmentDto>>> GetByCourse(int courseId)
         {
             var response = await _assessmentService.GetByCourseAsync(courseId);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
+
+        // Student: get assessment ready for taking the quiz (includes questions/options)
+        [HttpGet("course/{courseId}/for-student")]
+        [AllowAnonymous]
+        public async Task<ActionResult<ApiResponse<AssessmentDto>>> GetForStudent(int courseId)
+        {
+            var response = await _assessmentService.GetForStudentAsync(courseId);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);

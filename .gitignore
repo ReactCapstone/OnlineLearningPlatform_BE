@@ -74,6 +74,4 @@ DocumentLayout.json
 *.tmp
 *.log
 
-VSWorkspaceState.json
-/src/NVLearnHub.API/appsettings.Development.json
-/src/NVLearnHub.API/appsettings.json
+
