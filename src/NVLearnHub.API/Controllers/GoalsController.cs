@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NVLearnHub.API.Models;
 using NVLearnHub.Infrastructure.Data;
+using System.Security.Claims;
 
 namespace NVLearnHub.API.Controllers
 {
@@ -19,7 +20,8 @@ namespace NVLearnHub.API.Controllers
         [HttpGet]
         public async Task<ActionResult<ApiResponse<IEnumerable<GoalDto>>>> GetForCurrentUser()
         {
-            var userIdValue = User.FindFirst("sub")?.Value;
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue("sub");
             if (!int.TryParse(userIdValue, out var userId))
                 return Unauthorized(new ApiResponse<IEnumerable<GoalDto>>(false, "User identity is missing."));
 
