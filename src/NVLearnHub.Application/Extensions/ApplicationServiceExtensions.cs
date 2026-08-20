@@ -12,6 +12,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IAssessmentService, AssessmentService>();
         services.AddScoped<IDashboardService, DashboardService>();
+        services.AddScoped<ICategoryService, CategoryService>();
 
         // Future services go here — one line each:
 

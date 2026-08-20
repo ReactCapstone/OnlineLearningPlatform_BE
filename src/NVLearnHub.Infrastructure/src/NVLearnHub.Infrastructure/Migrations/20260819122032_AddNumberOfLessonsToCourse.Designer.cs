@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NVLearnHub.Infrastructure.Data;
 
 #nullable disable
 
-namespace NVLearnHub.Infrastructure.Migrations
+namespace NVLearnHub.Infrastructure.src.NVLearnHub.Infrastructure.Migrations
 {
     [DbContext(typeof(LearnHubDbContext))]
-    partial class LearnHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260819122032_AddNumberOfLessonsToCourse")]
+    partial class AddNumberOfLessonsToCourse
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

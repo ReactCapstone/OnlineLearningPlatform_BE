@@ -20,6 +20,9 @@ namespace NVLearnHub.Domain.Entities.Catalog
         public string Language { get; set; } = default!;
         public bool IsPublished { get; set; }
 
+        // New: configured number of lessons for the course
+        public int NumberOfLessons { get; set; }
+
         public ICollection<Section> Sections { get; set; } = new List<Section>();
     }
 }

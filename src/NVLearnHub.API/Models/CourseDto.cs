@@ -14,5 +14,7 @@ namespace NVLearnHub.API.Models
         public string Level { get; set; } = default!;
         public string Language { get; set; } = default!;
         public bool IsPublished { get; set; }
+        // New: configured number of lessons
+        public int NumberOfLessons { get; set; }
     }
 }
