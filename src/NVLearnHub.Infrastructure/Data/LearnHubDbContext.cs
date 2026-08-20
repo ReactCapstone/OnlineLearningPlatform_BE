@@ -72,7 +72,7 @@ namespace NVLearnHub.Infrastructure.Data
                 .Property(u => u.Expertise)
                 .HasConversion(
                     values => JsonSerializer.Serialize(values, (JsonSerializerOptions?)null),
-                    value => JsonSerializer.Deserialize<List<string>>(value, (JsonSerializerOptions?)null) ?? new List<string>())
+                    value => DeserializeExpertise(value))
                 .Metadata.SetValueComparer(new ValueComparer<List<string>>(
                     (left, right) => left != null && right != null && left.SequenceEqual(right),
                     value => value.Aggregate(0, (hash, item) => HashCode.Combine(hash, item.GetHashCode())),
@@ -134,6 +134,21 @@ namespace NVLearnHub.Infrastructure.Data
             }
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        private static List<string> DeserializeExpertise(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+                return new List<string>();
+
+            try
+            {
+                return JsonSerializer.Deserialize<List<string>>(value, (JsonSerializerOptions?)null) ?? new List<string>();
+            }
+            catch (JsonException)
+            {
+                return new List<string>();
+            }
         }
 
         public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
