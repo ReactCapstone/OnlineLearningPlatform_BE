@@ -15,10 +15,11 @@ namespace NVLearnHub.Infrastructure.Repositories
                     .ThenInclude(q => q.Options)
                 .FirstOrDefaultAsync(a => a.Id == assessmentId);
 
-        public async Task<Assessment?> GetByCourseAsync(int courseId)
+        public async Task<IEnumerable<Assessment>> GetByCourseAsync(int courseId)
             => await _context.Assessments
+                .Where(a => a.CourseId == courseId)
                 .Include(a => a.Questions)
                     .ThenInclude(q => q.Options)
-                .FirstOrDefaultAsync(a => a.CourseId == courseId);
+                .ToListAsync();
     }
 }
