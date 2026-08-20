@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using NVLearnHub.Application.Interfaces;
 using NVLearnHub.Domain.Common;
 using NVLearnHub.Domain.Entities.Admin;
@@ -29,6 +31,7 @@ namespace NVLearnHub.Infrastructure.Data
 
         // Catalog
         public DbSet<Category> Categories => Set<Category>();
+        public DbSet<Goal> Goals => Set<Goal>();
         public DbSet<Course> Courses => Set<Course>();
         public DbSet<Section> Sections => Set<Section>();
         public DbSet<Lesson> Lessons => Set<Lesson>();
@@ -56,9 +59,24 @@ namespace NVLearnHub.Infrastructure.Data
                 new Role { Id = 1, Name = "Admin", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), CreatedBy = "system" },
                 new Role { Id = 2, Name = "Student", CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), CreatedBy = "system" }
             );
+            modelBuilder.Entity<Goal>().HasData(
+                new Goal { Id = 1, Title = "Build a React dashboard", Description = "Create a responsive dashboard using React and TypeScript.", RequiredSkill = "React", IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), CreatedBy = "system" },
+                new Goal { Id = 2, Title = "Build an API", Description = "Design and implement a production-ready backend API.", RequiredSkill = ".NET", IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), CreatedBy = "system" },
+                new Goal { Id = 3, Title = "Automate deployments", Description = "Create a repeatable cloud deployment workflow.", RequiredSkill = "Docker", IsActive = true, CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc), CreatedBy = "system" }
+            );
             modelBuilder.Entity<Course>()
                         .Property(c => c.Price)
                         .HasPrecision(18, 2);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Expertise)
+                .HasConversion(
+                    values => JsonSerializer.Serialize(values, (JsonSerializerOptions?)null),
+                    value => JsonSerializer.Deserialize<List<string>>(value, (JsonSerializerOptions?)null) ?? new List<string>())
+                .Metadata.SetValueComparer(new ValueComparer<List<string>>(
+                    (left, right) => left != null && right != null && left.SequenceEqual(right),
+                    value => value.Aggregate(0, (hash, item) => HashCode.Combine(hash, item.GetHashCode())),
+                    value => value.ToList()));
 
             // Assessment seed
             //modelBuilder.Entity<Assessment>().HasData(

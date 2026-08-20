@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NVLearnHub.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using NVLearnHub.Infrastructure.Data;
 namespace NVLearnHub.Infrastructure.Migrations
 {
     [DbContext(typeof(LearnHubDbContext))]
-    partial class LearnHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260820100424_AddGoalsAndUserExpertise")]
+    partial class AddGoalsAndUserExpertise
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -379,38 +382,6 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Goals");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "system",
-                            Description = "Create a responsive dashboard using React and TypeScript.",
-                            IsActive = true,
-                            RequiredSkill = "React",
-                            Title = "Build a React dashboard"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "system",
-                            Description = "Design and implement a production-ready backend API.",
-                            IsActive = true,
-                            RequiredSkill = ".NET",
-                            Title = "Build an API"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "system",
-                            Description = "Create a repeatable cloud deployment workflow.",
-                            IsActive = true,
-                            RequiredSkill = "Docker",
-                            Title = "Automate deployments"
-                        });
                 });
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Catalog.Lesson", b =>

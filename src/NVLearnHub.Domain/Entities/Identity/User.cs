@@ -1,4 +1,5 @@
 ﻿using NVLearnHub.Domain.Common;
+using System.Collections.Generic;
 
 namespace NVLearnHub.Domain.Entities.Identity
 {
@@ -13,6 +14,7 @@ namespace NVLearnHub.Domain.Entities.Identity
         public bool IsActive { get; set; }
         public int? YearsOfExperience { get; set; }
         public string? AreaOfExpertise { get; set; }
+        public List<string> Expertise { get; set; } = new();
         public string FullName => $"{FirstName} {LastName}";
 
         public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();

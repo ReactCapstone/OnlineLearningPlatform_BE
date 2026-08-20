@@ -18,11 +18,35 @@ namespace NVLearnHub.API.Controllers
             _context = context;
         }
 
+        [HttpGet("my-progress")]
+        public async Task<ActionResult<ApiResponse<MyProgressDto>>> GetMyProgress()
+        {
+            var userIdValue = User.FindFirst("sub")?.Value;
+            if (!int.TryParse(userIdValue, out var userId))
+                return Unauthorized(new ApiResponse<MyProgressDto>(false, "User identity is missing."));
+
+            var courses = await BuildCourseProgress(userId);
+            var overall = courses.Count == 0
+                ? 0
+                : (int)Math.Round(courses.Average(course => course.ProgressPercentage));
+
+            return Ok(new ApiResponse<MyProgressDto>(new MyProgressDto
+            {
+                OverallCompletionPercentage = overall,
+                Courses = courses
+            }, "Progress loaded successfully."));
+        }
+
         [HttpGet("user/{userId}/courses")]
         [AllowAnonymous]
         public async Task<ActionResult<ApiResponse<IEnumerable<CourseProgressDto>>>> GetUserCourseProgress(int userId)
         {
-            // Get enrollments for user that are InProgress
+            var result = await BuildCourseProgress(userId);
+            return Ok(new ApiResponse<IEnumerable<CourseProgressDto>>(result));
+        }
+
+        private async Task<List<CourseProgressDto>> BuildCourseProgress(int userId)
+        {
             var enrollments = await _context.Enrollments
                 .AsNoTracking()
                 .Where(e => e.UserId == userId && e.Status == "InProgress")
@@ -74,7 +98,7 @@ namespace NVLearnHub.API.Controllers
                 });
             }
 
-            return Ok(new ApiResponse<IEnumerable<CourseProgressDto>>(result));
+            return result;
         }
 
         [HttpGet("enrollment/{enrollmentId}")]

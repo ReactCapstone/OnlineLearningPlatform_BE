@@ -9,5 +9,6 @@
         public string ConfirmPassword { get; set; } = default!;
         public int? YearsOfExperience { get; set; }
         public string? AreaOfExpertise { get; set; }
+        public List<string>? Expertise { get; set; }
     }
 }
