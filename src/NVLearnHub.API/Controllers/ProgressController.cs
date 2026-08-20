@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using NVLearnHub.API.Models;
 using NVLearnHub.Infrastructure.Data;
 using NVLearnHub.Domain.Entities.Enrollment;
+using System.Security.Claims;
 
 namespace NVLearnHub.API.Controllers
 {
@@ -21,7 +22,8 @@ namespace NVLearnHub.API.Controllers
         [HttpGet("my-progress")]
         public async Task<ActionResult<ApiResponse<MyProgressDto>>> GetMyProgress()
         {
-            var userIdValue = User.FindFirst("sub")?.Value;
+            var userIdValue = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue("sub");
             if (!int.TryParse(userIdValue, out var userId))
                 return Unauthorized(new ApiResponse<MyProgressDto>(false, "User identity is missing."));
 
