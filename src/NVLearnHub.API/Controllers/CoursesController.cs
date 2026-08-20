@@ -46,7 +46,8 @@ namespace NVLearnHub.API.Controllers
                     Price = c.Price,
                     Level = c.Level,
                     Language = c.Language,
-                    IsPublished = c.IsPublished
+                    IsPublished = c.IsPublished,
+                    NumberOfLessons = c.NumberOfLessons
                 })
                 .ToListAsync();
 
@@ -71,7 +72,8 @@ namespace NVLearnHub.API.Controllers
                     Price = x.Price,
                     Level = x.Level,
                     Language = x.Language,
-                    IsPublished = x.IsPublished
+                    IsPublished = x.IsPublished,
+                    NumberOfLessons = x.NumberOfLessons
                 })
                 .FirstOrDefaultAsync();
 
@@ -79,6 +81,11 @@ namespace NVLearnHub.API.Controllers
             return Ok(new ApiResponse<CourseDto>(c, "Request successful."));
         }
 
+        /// <summary>
+        /// Creates a new course as either a draft or published record.
+        /// </summary>
+        /// <param name="dto">Course creation DTO.</param>
+        /// <returns>Created course DTO or validation error.</returns>
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<CourseDto>>> Create([FromBody] CreateCourseDto dto)
@@ -93,7 +100,8 @@ namespace NVLearnHub.API.Controllers
                 Price = dto.Price,
                 Level = dto.Level,
                 Language = dto.Language,
-                IsPublished = dto.IsPublished
+                IsPublished = dto.IsPublished,
+                NumberOfLessons = dto.NumberOfLessons
             };
 
             _context.Courses.Add(course);
@@ -110,18 +118,31 @@ namespace NVLearnHub.API.Controllers
                 Price = course.Price,
                 Level = course.Level,
                 Language = course.Language,
-                IsPublished = course.IsPublished
+                IsPublished = course.IsPublished,
+                NumberOfLessons = course.NumberOfLessons
             };
 
             return CreatedAtAction(nameof(Get), new { id = result.Id }, new ApiResponse<CourseDto>(result, "Course created successfully."));
         }
 
+        /// <summary>
+        /// Updates an existing course. When publishing (IsPublished=true) validates that configured NumberOfLessons matches actual lessons linked to the course.
+        /// </summary>
+        /// <param name="id">Course id</param>
+        /// <param name="dto">Course DTO</param>
+        /// <returns>Result message or validation error</returns>
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<string>>> Update(int id, [FromBody] CreateCourseDto dto)
         {
             var course = await _context.Courses.FindAsync(id);
             if (course == null) return NotFound(new ApiResponse<string>(false, "Course not found."));
+
+            // Basic server-side validation
+            if (dto.NumberOfLessons < 0)
+            {
+                return BadRequest(new ApiResponse<string>(false, "NumberOfLessons cannot be negative."));
+            }
 
             course.Title = dto.Title;
             course.Description = dto.Description;
@@ -132,6 +153,21 @@ namespace NVLearnHub.API.Controllers
             course.Level = dto.Level;
             course.Language = dto.Language;
             course.IsPublished = dto.IsPublished;
+            course.NumberOfLessons = dto.NumberOfLessons;
+
+            // If trying to publish, validate counts
+            if (dto.IsPublished)
+            {
+                var actualCount = await _context.Lessons
+                    .Include(l => l.Section)
+                    .Where(l => l.Section != null && l.Section.CourseId == course.Id)
+                    .CountAsync();
+
+                if (dto.NumberOfLessons != actualCount)
+                {
+                    return BadRequest(new ApiResponse<string>(false, $"Number of lessons does not match. Configured: {dto.NumberOfLessons}, Actual: {actualCount}"));
+                }
+            }
 
             _context.Courses.Update(course);
 
