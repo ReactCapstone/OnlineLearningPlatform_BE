@@ -82,7 +82,7 @@ namespace NVLearnHub.API.Controllers
         }
 
         /// <summary>
-        /// Creates a new course. When publishing (IsPublished=true) validates that configured NumberOfLessons matches actual lessons linked to the course.
+        /// Creates a new course as either a draft or published record.
         /// </summary>
         /// <param name="dto">Course creation DTO.</param>
         /// <returns>Created course DTO or validation error.</returns>
@@ -90,12 +90,6 @@ namespace NVLearnHub.API.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<ActionResult<ApiResponse<CourseDto>>> Create([FromBody] CreateCourseDto dto)
         {
-            // Basic server-side validation for number of lessons
-            if (dto.NumberOfLessons < 0)
-            {
-                return BadRequest(new ApiResponse<CourseDto>(false, "NumberOfLessons cannot be negative."));
-            }
-
             var course = new Course
             {
                 Title = dto.Title,
@@ -109,21 +103,6 @@ namespace NVLearnHub.API.Controllers
                 IsPublished = dto.IsPublished,
                 NumberOfLessons = dto.NumberOfLessons
             };
-
-            // If publishing now, validate that actual lessons match configured count
-            if (dto.IsPublished)
-            {
-                // At create-time it's expected there will be no lessons; count will reflect current DB state (likely 0)
-                var actualCount = await _context.Lessons
-                    .Include(l => l.Section)
-                    .Where(l => l.Section != null && l.Section.CourseId == course.Id)
-                    .CountAsync();
-
-                if (dto.NumberOfLessons != actualCount)
-                {
-                    return BadRequest(new ApiResponse<CourseDto>(false, $"Number of lessons does not match. Configured: {dto.NumberOfLessons}, Actual: {actualCount}"));
-                }
-            }
 
             _context.Courses.Add(course);
             await _context.SaveChangesAsync();
