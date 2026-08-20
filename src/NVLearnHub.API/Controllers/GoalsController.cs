@@ -34,9 +34,20 @@ namespace NVLearnHub.API.Controllers
                 .Select(skill => skill.Trim().ToLower())
                 .ToList();
 
+            var matchingSkills = normalizedSkills
+                .SelectMany(skill => skill switch
+                {
+                    "frontend development" => new[] { "frontend development", "react" },
+                    "backend development" => new[] { "backend development", ".net" },
+                    "full stack development" => new[] { "full stack development", "react", ".net" },
+                    "devops & cloud" => new[] { "devops & cloud", "docker" },
+                    _ => new[] { skill }
+                })
+                .ToHashSet();
+
             var goals = await _context.Goals
                 .AsNoTracking()
-                .Where(goal => goal.IsActive && normalizedSkills.Contains(goal.RequiredSkill.ToLower()))
+                .Where(goal => goal.IsActive)
                 .Select(goal => new GoalDto
                 {
                     Id = goal.Id,
@@ -45,6 +56,10 @@ namespace NVLearnHub.API.Controllers
                     RequiredSkill = goal.RequiredSkill
                 })
                 .ToListAsync();
+
+            goals = goals
+                .Where(goal => matchingSkills.Contains(goal.RequiredSkill.Trim().ToLower()))
+                .ToList();
 
             return Ok(new ApiResponse<IEnumerable<GoalDto>>(goals, "Goals loaded successfully."));
         }
