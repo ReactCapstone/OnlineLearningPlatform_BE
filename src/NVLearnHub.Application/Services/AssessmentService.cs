@@ -2,6 +2,7 @@
 using NVLearnHub.Application.Interfaces;
 using NVLearnHub.Application.Interfaces.Services;
 using NVLearnHub.Domain.Entities.Assessment;
+using System.Linq;
 
 namespace NVLearnHub.Application.Services
 {
@@ -76,6 +77,8 @@ namespace NVLearnHub.Application.Services
                         {
                             Id = o.Id,
                             OptionText = o.OptionText
+                            ,
+                            IsCorrect = o.IsCorrect
                         }).ToList()
                     }).ToList()
             };
@@ -150,6 +153,8 @@ namespace NVLearnHub.Application.Services
                         {
                             Id = o.Id,
                             OptionText = o.OptionText
+                            ,
+                            IsCorrect = o.IsCorrect
                         }).ToList()
                     }).ToList() ?? new List<QuestionDto>()
             };
@@ -187,22 +192,22 @@ namespace NVLearnHub.Application.Services
             return new ApiResponse<bool>(true, "Assessment deleted successfully.");
         }
 
-        // ─── Get Assessment For a Course ──────────────────────────────────────
+        // ─── Get Assessment(s) For a Course ───────────────────────────────────
 
-        public async Task<ApiResponse<AssessmentDto>> GetByCourseAsync(int courseId)
+        public async Task<ApiResponse<IEnumerable<AssessmentDto>>> GetByCourseAsync(int courseId)
         {
-            var assessment = await _uow.Assessments.GetByCourseAsync(courseId);
-            if (assessment == null)
-                return new ApiResponse<AssessmentDto>(false, "No assessment found for this course.", 404);
+            var assessments = (await _uow.Assessments.GetByCourseAsync(courseId)).ToList();
+            if (assessments == null || !assessments.Any())
+                return new ApiResponse<IEnumerable<AssessmentDto>>(false, "No assessment found for this course.", 404);
 
-            var data = new AssessmentDto
+            var data = assessments.Select(assessment => new AssessmentDto
             {
                 Id = assessment.Id,
                 Title = assessment.Title,
                 TimeLimitMinutes = assessment.TimeLimitMinutes,
                 PassPercentage = assessment.PassPercentage,
                 TotalQuestions = assessment.Questions.Count,
-                MaxAttempts = assessment.MaxAttempts,   // ← added
+                MaxAttempts = assessment.MaxAttempts,
                 Questions = assessment.Questions
                     .OrderBy(q => q.OrderIndex)
                     .Select(q => new QuestionDto
@@ -213,19 +218,21 @@ namespace NVLearnHub.Application.Services
                         Options = q.Options.Select(o => new QuestionOptionDto
                         {
                             Id = o.Id,
-                            OptionText = o.OptionText
+                            OptionText = o.OptionText,
+                            IsCorrect = o.IsCorrect
                         }).ToList()
                     }).ToList()
-            };
+            }).ToList();
 
-            return new ApiResponse<AssessmentDto>(data, "Assessment retrieved successfully.");
+            return new ApiResponse<IEnumerable<AssessmentDto>>(data, "Assessments retrieved successfully.");
         }
 
         // ─── Student: Get assessment (questions/options visible for taking quiz) ──
         public async Task<ApiResponse<AssessmentDto>> GetForStudentAsync(int courseId)
         {
-            // Reuse same repository method which includes questions and options
-            var assessment = await _uow.Assessments.GetByCourseAsync(courseId);
+            // Get all assessments and pick the most appropriate one for student (first by creation/order)
+            var assessments = (await _uow.Assessments.GetByCourseAsync(courseId)).ToList();
+            var assessment = assessments.FirstOrDefault();
             if (assessment == null)
                 return new ApiResponse<AssessmentDto>(false, "No assessment found for this course.", 404);
 
@@ -247,7 +254,9 @@ namespace NVLearnHub.Application.Services
                         Options = q.Options.Select(o => new QuestionOptionDto
                         {
                             Id = o.Id,
-                            OptionText = o.OptionText
+                            OptionText = o.OptionText,
+                            // NOTE: Do NOT expose correctness to students
+                            IsCorrect = null
                         }).ToList()
                     }).ToList()
             };
@@ -427,7 +436,8 @@ namespace NVLearnHub.Application.Services
 
         public async Task<ApiResponse<AssessmentStatusDto>> GetStatusAsync(int courseId, int userId)
         {
-            var assessment = await _uow.Assessments.GetByCourseAsync(courseId);
+            var assessments = (await _uow.Assessments.GetByCourseAsync(courseId)).ToList();
+            var assessment = assessments.FirstOrDefault();
             if (assessment == null)
                 return new ApiResponse<AssessmentStatusDto>(false, "No assessment found for this course.", 404);
 
@@ -487,7 +497,8 @@ namespace NVLearnHub.Application.Services
 
         public async Task<ApiResponse<IEnumerable<AttemptHistoryDto>>> GetAttemptHistoryAsync(int courseId, int userId)
         {
-            var assessment = await _uow.Assessments.GetByCourseAsync(courseId);
+            var assessments = (await _uow.Assessments.GetByCourseAsync(courseId)).ToList();
+            var assessment = assessments.FirstOrDefault();
             if (assessment == null)
                 return new ApiResponse<IEnumerable<AttemptHistoryDto>>(false, "No assessment found for this course.", 404);
 

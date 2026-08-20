@@ -8,6 +8,6 @@ namespace NVLearnHub.Application.Interfaces.Repositories
     public interface IAssessmentRepository : IRepository<Assessment>
     {
         Task<Assessment?> GetWithQuestionsAndOptionsAsync(int assessmentId);
-        Task<Assessment?> GetByCourseAsync(int courseId);
+        Task<IEnumerable<Assessment>> GetByCourseAsync(int courseId);
     }
 }

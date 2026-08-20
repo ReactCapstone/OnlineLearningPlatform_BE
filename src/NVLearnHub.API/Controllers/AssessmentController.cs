@@ -50,7 +50,7 @@ namespace NVLearnHub.API.Controllers
 
         // GET /api/Assessment/course/{courseId}
         [HttpGet("course/{courseId}")]
-        public async Task<ActionResult<ApiResponse<AssessmentDto>>> GetByCourse(int courseId)
+        public async Task<ActionResult<ApiResponse<IEnumerable<AssessmentDto>>>> GetByCourse(int courseId)
         {
             var response = await _assessmentService.GetByCourseAsync(courseId);
             if (!response.Success)
