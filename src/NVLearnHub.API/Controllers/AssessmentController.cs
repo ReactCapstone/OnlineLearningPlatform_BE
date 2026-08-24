@@ -58,10 +58,10 @@ namespace NVLearnHub.API.Controllers
             return Ok(response);
         }
 
-        // Student: get assessment ready for taking the quiz (includes questions/options)
+        // Student: get assessments ready for taking the quiz (includes questions/options)
         [HttpGet("course/{courseId}/for-student")]
         [AllowAnonymous]
-        public async Task<ActionResult<ApiResponse<AssessmentDto>>> GetForStudent(int courseId)
+        public async Task<ActionResult<ApiResponse<IEnumerable<AssessmentDto>>>> GetForStudent(int courseId)
         {
             var response = await _assessmentService.GetForStudentAsync(courseId);
             if (!response.Success)

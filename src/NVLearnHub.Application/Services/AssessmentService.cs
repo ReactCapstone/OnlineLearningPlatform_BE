@@ -227,16 +227,15 @@ namespace NVLearnHub.Application.Services
             return new ApiResponse<IEnumerable<AssessmentDto>>(data, "Assessments retrieved successfully.");
         }
 
-        // ─── Student: Get assessment (questions/options visible for taking quiz) ──
-        public async Task<ApiResponse<AssessmentDto>> GetForStudentAsync(int courseId)
+        // ─── Student: Get assessments (questions/options visible for taking quiz) ──
+        public async Task<ApiResponse<IEnumerable<AssessmentDto>>> GetForStudentAsync(int courseId)
         {
-            // Get all assessments and pick the most appropriate one for student (first by creation/order)
+            // Return all assessments for the course for student consumption
             var assessments = (await _uow.Assessments.GetByCourseAsync(courseId)).ToList();
-            var assessment = assessments.FirstOrDefault();
-            if (assessment == null)
-                return new ApiResponse<AssessmentDto>(false, "No assessment found for this course.", 404);
+            if (assessments == null || !assessments.Any())
+                return new ApiResponse<IEnumerable<AssessmentDto>>(false, "No assessment found for this course.", 404);
 
-            var data = new AssessmentDto
+            var data = assessments.Select(assessment => new AssessmentDto
             {
                 Id = assessment.Id,
                 Title = assessment.Title,
@@ -255,13 +254,13 @@ namespace NVLearnHub.Application.Services
                         {
                             Id = o.Id,
                             OptionText = o.OptionText,
-                            // NOTE: Do NOT expose correctness to students
+                            // Do NOT expose correctness to students
                             IsCorrect = null
                         }).ToList()
                     }).ToList()
-            };
+            }).ToList();
 
-            return new ApiResponse<AssessmentDto>(data, "Assessment retrieved successfully.");
+            return new ApiResponse<IEnumerable<AssessmentDto>>(data, "Assessments retrieved successfully.");
         }
 
 
