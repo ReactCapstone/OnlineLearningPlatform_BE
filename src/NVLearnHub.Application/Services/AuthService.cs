@@ -64,7 +64,10 @@ namespace NVLearnHub.Application.Services
                 RoleId = studentRole.Id,
                 IsActive = true,
                 YearsOfExperience = dto.YearsOfExperience,
-                AreaOfExpertise = dto.AreaOfExpertise
+                AreaOfExpertise = dto.AreaOfExpertise,
+                Expertise = dto.Expertise ?? (string.IsNullOrWhiteSpace(dto.AreaOfExpertise)
+                    ? new List<string>()
+                    : new List<string> { dto.AreaOfExpertise })
             };
 
             await _uow.Users.AddAsync(user);
@@ -275,6 +278,7 @@ namespace NVLearnHub.Application.Services
                 Role = roleName,
                 YearsOfExperience = user.YearsOfExperience,
                 AreaOfExpertise = user.AreaOfExpertise,
+                Expertise = user.Expertise,
                 ExpiresAt = expiry
             };
         }
