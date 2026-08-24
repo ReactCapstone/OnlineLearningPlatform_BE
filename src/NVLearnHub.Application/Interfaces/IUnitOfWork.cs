@@ -16,6 +16,7 @@ namespace NVLearnHub.Application.Interfaces
         ILessonProgressRepository LessonProgress { get; }
         ICertificateRepository Certificates { get; }
         ICategoryRepository Categories { get; }
+        IEmailOtpRepository EmailOtps { get; }
 
         Task<int> SaveChangesAsync();
     }

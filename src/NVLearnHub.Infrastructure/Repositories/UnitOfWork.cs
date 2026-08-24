@@ -21,6 +21,7 @@ namespace NVLearnHub.Infrastructure.Repositories
         public ILessonProgressRepository LessonProgress { get; }
         public ICertificateRepository Certificates { get; }
         public ICategoryRepository Categories { get; }
+        public IEmailOtpRepository EmailOtps { get; }
 
         public UnitOfWork(LearnHubDbContext context)
         {
@@ -37,6 +38,7 @@ namespace NVLearnHub.Infrastructure.Repositories
             LessonProgress = new LessonProgressRepository(_context);
             Certificates = new CertificateRepository(_context);
             Categories = new CategoryRepository(_context);
+            EmailOtps = new EmailOtpRepository(_context);
         }
 
         public async Task<int> SaveChangesAsync()

@@ -16,28 +16,45 @@ namespace NVLearnHub.Application.Services
     {
         private readonly IUnitOfWork _uow;
         private readonly IConfiguration _config;
+        private readonly IEmailService _emailService;
 
-        public AuthService(IUnitOfWork uow, IConfiguration config)
+        public AuthService(IUnitOfWork uow, IConfiguration config, IEmailService emailService)
         {
             _uow = uow;
             _config = config;
+            _emailService = emailService;
         }
 
         // ─── Register ────────────────────────────────────────────────────────
 
         public async Task<ApiResponse<AuthResponseDto>> RegisterAsync(RegisterDto dto)
         {
+            // 1. Validate verification token
+            var emailOtp = await _uow.EmailOtps
+                .GetValidVerificationTokenAsync(dto.VerificationToken);
+
+            if (emailOtp == null)
+                return new ApiResponse<AuthResponseDto>(false, "Email verification required.", 400);
+
+            // 2. Make sure token email matches registration email
+            if (emailOtp.Email != dto.Email)
+                return new ApiResponse<AuthResponseDto>(false, "Email mismatch.", 400);
+
+            // 3. Check email not already registered
             if (await _uow.Users.EmailExistsAsync(dto.Email))
-                return new ApiResponse<AuthResponseDto>(false, "Email is already registered.");
+                return new ApiResponse<AuthResponseDto>(false, "Email is already registered.", 409);
 
+            // 4. Passwords match
             if (dto.Password != dto.ConfirmPassword)
-                return new ApiResponse<AuthResponseDto>(false, "Passwords do not match.");
+                return new ApiResponse<AuthResponseDto>(false, "Passwords do not match.", 400);
 
+            // 5. Get student role
             var roles = await _uow.Roles.GetAllAsync();
             var studentRole = roles.FirstOrDefault(r => r.Name == "Student");
             if (studentRole == null)
-                return new ApiResponse<AuthResponseDto>(false, "Student role not found.");
+                return new ApiResponse<AuthResponseDto>(false, "Student role not found.", 404);
 
+            // 6. Create user
             var user = new User
             {
                 FirstName = dto.FirstName,
@@ -51,6 +68,11 @@ namespace NVLearnHub.Application.Services
             };
 
             await _uow.Users.AddAsync(user);
+
+            // 7. Mark OTP token as used
+            emailOtp.IsUsed = true;
+            _uow.EmailOtps.Update(emailOtp);
+
             await _uow.SaveChangesAsync();
 
             var data = GenerateAuthResponse(user, studentRole.Name);
@@ -125,6 +147,91 @@ namespace NVLearnHub.Application.Services
 
             var data = new ResetPasswordResponseDto { IsReset = true };
             return new ApiResponse<ResetPasswordResponseDto>(data, "Password reset successful.");
+        }
+
+        // ─── Send OTP ─────────────────────────────────────────────────────────────
+
+        public async Task<ApiResponse<SendOtpResponseDto>> SendOtpAsync(SendOtpDto dto)
+        {
+            if (await _uow.Users.EmailExistsAsync(dto.Email))
+                return new ApiResponse<SendOtpResponseDto>(false, "Email is already registered.", 409);
+
+            await _uow.EmailOtps.InvalidatePreviousOtpsAsync(dto.Email);
+            await _uow.SaveChangesAsync();
+
+            var masterOtp = _config["Email:MasterOtp"];
+            var otpCode = string.IsNullOrWhiteSpace(masterOtp)
+                ? new Random().Next(100000, 999999).ToString()
+                : masterOtp; // ← use master OTP for demo
+
+            var expiresAt = DateTime.UtcNow.AddMinutes(10);
+
+            var emailOtp = new EmailOtp
+            {
+                Email = dto.Email,
+                OtpCode = otpCode,
+                ExpiresAt = expiresAt,
+                IsVerified = false,
+                IsUsed = false
+            };
+
+            await _uow.EmailOtps.AddAsync(emailOtp);
+            await _uow.SaveChangesAsync();
+
+            // Only send real email if no master OTP configured
+            if (string.IsNullOrWhiteSpace(masterOtp))
+                await _emailService.SendOtpEmailAsync(dto.Email, otpCode);
+
+            var data = new SendOtpResponseDto
+            {
+                Email = dto.Email,
+                ExpiresAt = expiresAt
+            };
+
+            return new ApiResponse<SendOtpResponseDto>(data, "OTP sent to your email.");
+        }
+
+        // ─── Verify OTP ───────────────────────────────────────────────────────────
+
+        public async Task<ApiResponse<VerifyOtpResponseDto>> VerifyOtpAsync(VerifyOtpDto dto)
+        {
+            var masterOtp = _config["Email:MasterOtp"];
+            var isMasterOtp = !string.IsNullOrWhiteSpace(masterOtp)
+                              && dto.OtpCode == masterOtp;
+
+            EmailOtp? emailOtp;
+
+            if (isMasterOtp)
+            {
+                // Master OTP path — find any pending OTP record for this email
+                emailOtp = await _uow.EmailOtps.GetPendingOtpByEmailAsync(dto.Email);
+                if (emailOtp == null)
+                    return new ApiResponse<VerifyOtpResponseDto>(false, "No OTP request found for this email.", 400);
+            }
+            else
+            {
+                // Normal path — validate OTP code from DB
+                emailOtp = await _uow.EmailOtps.GetValidOtpAsync(dto.Email, dto.OtpCode);
+                if (emailOtp == null)
+                    return new ApiResponse<VerifyOtpResponseDto>(false, "Invalid or expired OTP.", 400);
+            }
+
+            var verificationToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+
+            emailOtp.IsVerified = true;
+            emailOtp.VerificationToken = verificationToken;
+            emailOtp.ExpiresAt = DateTime.UtcNow.AddMinutes(30);
+            _uow.EmailOtps.Update(emailOtp);
+            await _uow.SaveChangesAsync();
+
+            var data = new VerifyOtpResponseDto
+            {
+                VerificationToken = verificationToken,
+                Email = dto.Email,
+                ExpiresAt = emailOtp.ExpiresAt
+            };
+
+            return new ApiResponse<VerifyOtpResponseDto>(data, "Email verified successfully.");
         }
 
         // ─── JWT Helper ──────────────────────────────────────────────────────
