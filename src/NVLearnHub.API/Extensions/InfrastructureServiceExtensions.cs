@@ -23,6 +23,7 @@ public static class InfrastructureServiceExtensions
         // Current User
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+        services.AddScoped<IEmailService, GmailEmailService>();
 
         // Wishlist (in-memory for now)
         services.AddScoped<IWishlistService, WishlistService>();

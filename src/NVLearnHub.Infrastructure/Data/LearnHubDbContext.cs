@@ -50,6 +50,9 @@ namespace NVLearnHub.Infrastructure.Data
         public DbSet<AssessmentAttempt> AssessmentAttempts => Set<AssessmentAttempt>();
         public DbSet<AssessmentAnswer> AssessmentAnswers => Set<AssessmentAnswer>();
 
+        // Email
+        public DbSet<EmailOtp> EmailOtps => Set<EmailOtp>();
+
         // Admin
         //public DbSet<Advertisement> Advertisements => Set<Advertisement>();
 

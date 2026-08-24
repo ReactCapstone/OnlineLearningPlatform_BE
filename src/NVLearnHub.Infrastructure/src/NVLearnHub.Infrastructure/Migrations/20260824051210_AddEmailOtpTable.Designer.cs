@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NVLearnHub.Infrastructure.Data;
 
 #nullable disable
 
-namespace NVLearnHub.Infrastructure.Migrations
+namespace NVLearnHub.Infrastructure.src.NVLearnHub.Infrastructure.Migrations
 {
     [DbContext(typeof(LearnHubDbContext))]
-    partial class LearnHubDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260824051210_AddEmailOtpTable")]
+    partial class AddEmailOtpTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -337,80 +340,6 @@ namespace NVLearnHub.Infrastructure.Migrations
                     b.HasIndex("InstructorId");
 
                     b.ToTable("Courses");
-                });
-
-            modelBuilder.Entity("NVLearnHub.Domain.Entities.Catalog.Goal", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("RequiredSkill")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Goals");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "system",
-                            Description = "Create a responsive dashboard using React and TypeScript.",
-                            IsActive = true,
-                            RequiredSkill = "React",
-                            Title = "Build a React dashboard"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "system",
-                            Description = "Design and implement a production-ready backend API.",
-                            IsActive = true,
-                            RequiredSkill = ".NET",
-                            Title = "Build an API"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            CreatedBy = "system",
-                            Description = "Create a repeatable cloud deployment workflow.",
-                            IsActive = true,
-                            RequiredSkill = "Docker",
-                            Title = "Automate deployments"
-                        });
                 });
 
             modelBuilder.Entity("NVLearnHub.Domain.Entities.Catalog.Lesson", b =>
@@ -908,10 +837,6 @@ namespace NVLearnHub.Infrastructure.Migrations
                         .HasColumnType("nvarchar(150)");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Expertise")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

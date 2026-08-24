@@ -15,12 +15,30 @@ namespace NVLearnHub.API.Controllers
             _authService = authService;
         }
 
+        [HttpPost("send-otp")]
+        public async Task<ActionResult<ApiResponse<SendOtpResponseDto>>> SendOtp([FromBody] SendOtpDto dto)
+        {
+            var response = await _authService.SendOtpAsync(dto);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
+
+        [HttpPost("verify-otp")]
+        public async Task<ActionResult<ApiResponse<VerifyOtpResponseDto>>> VerifyOtp([FromBody] VerifyOtpDto dto)
+        {
+            var response = await _authService.VerifyOtpAsync(dto);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
+
         [HttpPost("register")]
         public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register([FromBody] RegisterDto dto)
         {
             var response = await _authService.RegisterAsync(dto);
             if (!response.Success)
-                return BadRequest(response);
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -29,7 +47,7 @@ namespace NVLearnHub.API.Controllers
         {
             var response = await _authService.LoginAsync(dto);
             if (!response.Success)
-                return Unauthorized(response);
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -38,7 +56,7 @@ namespace NVLearnHub.API.Controllers
         {
             var response = await _authService.ForgotPasswordAsync(dto);
             if (!response.Success)
-                return NotFound(response);
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
 
@@ -47,7 +65,7 @@ namespace NVLearnHub.API.Controllers
         {
             var response = await _authService.ResetPasswordAsync(dto);
             if (!response.Success)
-                return BadRequest(response);
+                return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
     }
