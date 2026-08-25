@@ -14,5 +14,7 @@ namespace NVLearnHub.Application.Interfaces.Services
         Task<ApiResponse<AssessmentResultDto>> GetAttemptResultAsync(int attemptId, int userId);
         Task<ApiResponse<AssessmentStatusDto>> GetStatusAsync(int courseId, int userId);
         Task<ApiResponse<IEnumerable<AttemptHistoryDto>>> GetAttemptHistoryAsync(int courseId, int userId);
+
+        Task<ApiResponse<IEnumerable<AssessmentDto>>> GetAllAssessmentsAsync();
     }
 }

@@ -9,5 +9,7 @@ namespace NVLearnHub.Application.Interfaces.Repositories
     {
         Task<Assessment?> GetWithQuestionsAndOptionsAsync(int assessmentId);
         Task<IEnumerable<Assessment>> GetByCourseAsync(int courseId);
+
+        Task<IEnumerable<Assessment>> GetAllAssessmentsAsync();
     }
 }

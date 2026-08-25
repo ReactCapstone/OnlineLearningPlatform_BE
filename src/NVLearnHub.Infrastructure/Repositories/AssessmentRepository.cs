@@ -21,5 +21,13 @@ namespace NVLearnHub.Infrastructure.Repositories
                 .Include(a => a.Questions)
                     .ThenInclude(q => q.Options)
                 .ToListAsync();
+
+        public async Task<IEnumerable<Assessment>> GetAllAssessmentsAsync()
+        {
+            return await _context.Assessments
+                .Include(a => a.Questions)
+                .ThenInclude(q => q.Options)
+                .ToListAsync();
+        }
     }
 }
