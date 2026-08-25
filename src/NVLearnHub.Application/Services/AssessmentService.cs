@@ -516,5 +516,56 @@ namespace NVLearnHub.Application.Services
 
             return new ApiResponse<IEnumerable<AttemptHistoryDto>>(history, "Attempt history retrieved.");
         }
+
+        public async Task<ApiResponse<IEnumerable<AssessmentDto>>> GetAllAssessmentsAsync()
+        {
+            var assessments = (await _uow.Assessments.GetAllAssessmentsAsync()).ToList();
+
+            if (!assessments.Any())
+                return new ApiResponse<IEnumerable<AssessmentDto>>
+            (
+                    false,
+                    "No Assessment found.",
+                    404
+
+            );
+
+            var data = assessments.Select(assessment => new AssessmentDto
+            {
+                Id = assessment.Id,
+                Title = assessment.Title,
+                TimeLimitMinutes = assessment.TimeLimitMinutes,
+                PassPercentage = assessment.PassPercentage,
+                TotalQuestions = assessment.Questions.Count,
+                MaxAttempts = assessment.MaxAttempts,
+
+                Questions = assessment.Questions
+                .OrderBy(q => q.OrderIndex)
+                .Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    QuestionText = q.QuestionText,
+                    OrderIndex = q.OrderIndex,
+
+                    Options = q.Options.Select(o => new QuestionOptionDto
+                    {
+                        Id = o.Id,
+                        OptionText = o.OptionText,
+                        IsCorrect = o.IsCorrect
+                    }).ToList()
+
+                }).ToList()
+
+            }).ToList();
+
+            return new ApiResponse<IEnumerable<AssessmentDto>>
+              (
+                data,
+                "Assessments retrieved successfully."
+              );
+        }
+
     }
+
+
 }

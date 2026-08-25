@@ -48,6 +48,18 @@ namespace NVLearnHub.API.Controllers
             return Ok(response);
         }
 
+        // ADMIN: View All assessments
+
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<IEnumerable<AssessmentDto>>>> GetAll()
+        {
+            var response = await _assessmentService.GetAllAssessmentsAsync();
+            if(!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
+
         // GET /api/Assessment/course/{courseId}
         [HttpGet("course/{courseId}")]
         public async Task<ActionResult<ApiResponse<IEnumerable<AssessmentDto>>>> GetByCourse(int courseId)
