@@ -15,6 +15,7 @@ namespace NVLearnHub.API.Controllers
         }
 
         // GET /api/Category
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<ApiResponse<List<CategoryDto>>>> GetAll()
         {
@@ -25,10 +26,22 @@ namespace NVLearnHub.API.Controllers
         }
 
         // GET /api/Category/{id}
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<ActionResult<ApiResponse<CategoryDto>>> GetById(int id)
         {
             var response = await _categoryService.GetByIdAsync(id);
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+            return Ok(response);
+        }
+
+        // POST /api/Category
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<ActionResult<ApiResponse<CategoryDto>>> Create([FromBody] CreateCategoryDto dto)
+        {
+            var response = await _categoryService.CreateAsync(dto);
             if (!response.Success)
                 return StatusCode(response.StatusCode, response);
             return Ok(response);
