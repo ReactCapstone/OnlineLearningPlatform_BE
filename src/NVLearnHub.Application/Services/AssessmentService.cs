@@ -565,6 +565,141 @@ namespace NVLearnHub.Application.Services
               );
         }
 
+
+        // ─── Admin: Update Assessment ───────────────────────────────────────
+
+        public async Task<ApiResponse<AssessmentDto>> UpdateAssessmentAsync(
+            int assessmentId,
+            UpdateAssessmentDto dto)
+        {
+            // 1. Get existing assessment with questions and options
+            var assessment =
+                await _uow.Assessments.GetWithQuestionsAndOptionsAsync(assessmentId);
+
+            if (assessment == null)
+            {
+                return new ApiResponse<AssessmentDto>(
+                    false,
+                    "Assessment not found.",
+                    404);
+            }
+
+            // 2. Make sure the course exists
+            var course = await _uow.Courses.GetByIdAsync(dto.CourseId);
+
+            if (course == null)
+            {
+                return new ApiResponse<AssessmentDto>(
+                    false,
+                    "Course not found.",
+                    404);
+            }
+
+            // 3. Check whether this assessment has already been attempted
+            var attempts =
+                await _uow.AssessmentAttempts.GetByAssessmentAsync(assessmentId);
+
+            if (attempts.Any())
+            {
+                return new ApiResponse<AssessmentDto>(
+                    false,
+                    "This assessment cannot be edited because it has already been attempted by a student.",
+                    400);
+            }
+
+            // 4. Validate questions
+            if (dto.Questions == null || !dto.Questions.Any())
+            {
+                return new ApiResponse<AssessmentDto>(
+                    false,
+                    "At least one question is required.",
+                    400);
+            }
+
+            // 5. Update assessment details
+            assessment.CourseId = dto.CourseId;
+            assessment.Title = dto.Title;
+            assessment.TimeLimitMinutes = dto.TimeLimitMinutes;
+            assessment.PassPercentage = dto.PassPercentage;
+            assessment.MaxAttempts = dto.MaxAttempts;
+
+            // 6. Remove existing questions.
+            //
+            // Your EF configuration already has:
+            //
+            // Assessment -> Questions = Cascade
+            // Question   -> Options   = Cascade
+            //
+            // Since we already checked that there are no attempts,
+            // replacing the questions is safe.
+            assessment.Questions.Clear();
+
+            // 7. Add the updated questions
+            foreach (var questionDto in dto.Questions)
+            {
+                var question = new Question
+                {
+                    QuestionText = questionDto.QuestionText,
+                    OrderIndex = questionDto.OrderIndex,
+                    Options = new List<QuestionOption>()
+                };
+
+                // 8. Add options
+                foreach (var optionDto in questionDto.Options)
+                {
+                    question.Options.Add(
+                        new QuestionOption
+                        {
+                            OptionText = optionDto.OptionText,
+                            IsCorrect = optionDto.IsCorrect
+                        });
+                }
+
+                assessment.Questions.Add(question);
+            }
+
+            // 9. Mark assessment as modified
+            _uow.Assessments.Update(assessment);
+
+            // 10. Save changes
+            await _uow.SaveChangesAsync();
+
+            // 11. Return updated assessment
+            var result = new AssessmentDto
+            {
+                Id = assessment.Id,
+                Title = assessment.Title,
+                TimeLimitMinutes = assessment.TimeLimitMinutes,
+                PassPercentage = assessment.PassPercentage,
+                TotalQuestions = assessment.Questions.Count,
+                MaxAttempts = assessment.MaxAttempts,
+
+                Questions = assessment.Questions
+                    .OrderBy(q => q.OrderIndex)
+                    .Select(q => new QuestionDto
+                    {
+                        Id = q.Id,
+                        QuestionText = q.QuestionText,
+                        OrderIndex = q.OrderIndex,
+
+                        Options = q.Options
+                            .Select(o => new QuestionOptionDto
+                            {
+                                Id = o.Id,
+                                OptionText = o.OptionText,
+                                IsCorrect = o.IsCorrect
+                            })
+                            .ToList()
+
+                    })
+                    .ToList()
+            };
+
+            return new ApiResponse<AssessmentDto>(
+                result,
+                "Assessment updated successfully.");
+        }
+
     }
 
 

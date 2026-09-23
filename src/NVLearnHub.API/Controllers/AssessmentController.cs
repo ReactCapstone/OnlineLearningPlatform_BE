@@ -136,6 +136,22 @@ namespace NVLearnHub.API.Controllers
             return Ok(response);
         }
 
+        // ADMIN: update assessment
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<ApiResponse<AssessmentDto>>> Update(
+            int id,
+            [FromBody] UpdateAssessmentDto dto)
+        {
+            var response =
+                await _assessmentService.UpdateAssessmentAsync(id, dto);
+
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+
+            return Ok(response);
+        }
+
         // ─── Helper ──────────────────────────────────────────────────────────
         private int GetUserId()
             => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)

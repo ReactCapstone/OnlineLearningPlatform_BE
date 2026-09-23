@@ -46,5 +46,22 @@ namespace NVLearnHub.API.Controllers
                 return StatusCode(response.StatusCode, response);
             return Ok(response);
         }
+
+        // PUT /api/Category/{id}
+        // Admin only
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public async Task<ActionResult<ApiResponse<CategoryDto>>> Update(
+            int id,
+            [FromBody] UpdateCategoryDto dto)
+        {
+            var response =
+                await _categoryService.UpdateAsync(id, dto);
+
+            if (!response.Success)
+                return StatusCode(response.StatusCode, response);
+
+            return Ok(response);
+        }
     }
 }

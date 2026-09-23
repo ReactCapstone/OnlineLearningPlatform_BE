@@ -67,5 +67,65 @@ namespace NVLearnHub.Application.Services
                 .Select(MapToDto)
                 .ToList() ?? new()
         };
+
+        //Update category
+        public async Task<ApiResponse<CategoryDto>> UpdateAsync(int id, UpdateCategoryDto dto)
+        {
+            // 1. Validate input
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                return new ApiResponse<CategoryDto>(
+                    false,
+                    "Category name is required.",
+                    400);
+            }
+
+            // 2. Find category
+            var category = await _uow.Categories.GetByIdAsync(id);
+
+            if (category == null)
+            {
+                return new ApiResponse<CategoryDto>(
+                    false,
+                    "Category not found.",
+                    404);
+            }
+
+            // 3. Check duplicate category name
+            var existingCategories =
+                await _uow.Categories.FindAsync(
+                    c => c.Name == dto.Name.Trim() && c.Id != id);
+
+            if (existingCategories.Any())
+            {
+                return new ApiResponse<CategoryDto>(
+                    false,
+                    "Category with this name already exists.",
+                    409);
+            }
+
+            // 4. Update category
+            category.Name = dto.Name.Trim();
+
+            _uow.Categories.Update(category);
+
+            // 5. Save changes
+            await _uow.SaveChangesAsync();
+
+            // 6. Return updated category
+            var data = new CategoryDto
+            {
+                Id = category.Id,
+                Name = category.Name,
+                ParentCategoryId = category.ParentCategoryId,
+                SubCategories = category.SubCategories?
+                    .Select(MapToDto)
+                    .ToList() ?? new()
+            };
+
+            return new ApiResponse<CategoryDto>(
+                data,
+                "Category updated successfully.");
+        }
     }
 }
